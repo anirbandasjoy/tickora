@@ -17,6 +17,7 @@ const schema = z.object({
   GOOGLE_REDIRECT_URI: z.string().url().optional(),
   RESEND_API_KEY: z.string().min(1).optional(),
   EMAIL_FROM: z.string().min(1).default('no-reply@localhost'),
+  DB_TRANSACTIONS: z.enum(['true', 'false']).default('true'),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -40,4 +41,5 @@ export const config = {
   GOOGLE_REDIRECT_URI: d.GOOGLE_REDIRECT_URI,
   RESEND_API_KEY: d.RESEND_API_KEY,
   EMAIL_FROM: d.EMAIL_FROM,
+  DB_TRANSACTIONS: d.DB_TRANSACTIONS === 'true',
 };

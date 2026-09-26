@@ -9,6 +9,7 @@ import errorHandler from './app/middlewares/errorHandler';
 import notFoundHandler from './app/middlewares/notFoundHandler';
 import { sendSuccessResponse } from './utils/response';
 import { config } from './config/env';
+import { apiRouter } from './app/routes';
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -49,6 +50,8 @@ export function createApp(auth: Auth) {
   app.get('/api/me', requireAuth, (req, res) => {
     return sendSuccessResponse(res, { data: { user: req.user, session: req.session } });
   });
+
+  app.use('/api/v1', apiRouter(auth));
 
   // Catch-all route for handling 404 Not Found
   app.use(notFoundHandler);

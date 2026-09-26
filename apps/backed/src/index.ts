@@ -1,11 +1,14 @@
 import http from 'http';
 import mongoose from 'mongoose';
 import { createApp } from './app';
-import { getMongoClient } from '@repo/database';
+import { connectDB, ensureDatabaseIndexes, getMongoClient } from '@repo/database';
 import { initAuth } from './lib/auth';
 import { config } from './config/env';
 
 const main = async () => {
+  await connectDB(config.MONGO_URI);
+  const indexes = await ensureDatabaseIndexes();
+  console.log(`Database indexes ensured: ${indexes.length} collections`);
   const auth = await initAuth();
   const app = createApp(auth);
   const server = http.createServer(app);

@@ -14,6 +14,11 @@ declare global {
         id: string;
         [key: string]: any;
       };
+      desktop?: {
+        userId: string;
+        deviceId: string;
+        sessionId: string;
+      };
     }
   }
 }
