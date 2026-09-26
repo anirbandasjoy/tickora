@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { Mail, User } from "lucide-react";
+import { Mail } from "lucide-react";
 import { RHFTextField } from "@repo/ui/components/form/rhf/rhf-text-field";
 import { RHFPasswordField } from "@repo/ui/components/form/rhf/rhf-password-field";
 import { Button } from "@repo/ui/components/core/button";
 import { signUp } from "@/lib/auth-client";
 import { AuthErrorAlert } from "../shared/auth-error-alert";
 import { signupSchema, type SignupFormValues } from "@repo/database/schemas";
+import { paths } from "@/utils/path-config";
 
 export function SignupForm() {
   const router = useRouter();
@@ -25,8 +26,9 @@ export function SignupForm() {
     const { error } = await signUp.email(
       { name: values.name, email: values.email, password: values.password },
       {
-        onSuccess: () => router.push("/dashboard"),
-        onError: (ctx) => setServerError(ctx.error.message ?? "Something went wrong"),
+        onSuccess: () => router.push(paths.dashboard.root),
+        onError: (ctx) =>
+          setServerError(ctx.error.message ?? "Something went wrong"),
       },
     );
     if (error) setServerError(error.message ?? "Something went wrong");
@@ -34,7 +36,6 @@ export function SignupForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <RHFTextField control={control} name="name" label="Name" icon={User} placeholder="Your name" />
       <RHFTextField
         control={control}
         name="email"

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Toaster } from "@repo/ui/components/core/sonner";
+import { TopLoader } from "../components/shared/top-loader";
 import { Providers } from "./providers";
 import "@repo/ui/globals.css";
 
@@ -26,6 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <TopLoader />
         <Providers>{children}</Providers>
         <Toaster />
       </body>

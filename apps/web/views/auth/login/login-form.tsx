@@ -11,6 +11,7 @@ import { Button } from "@repo/ui/components/core/button";
 import { signIn } from "@/lib/auth-client";
 import { AuthErrorAlert } from "../shared/auth-error-alert";
 import { loginSchema, type LoginFormValues } from "@repo/database/schemas";
+import { paths } from "@/utils/path-config";
 
 export function LoginForm() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export function LoginForm() {
     const { error } = await signIn.email(
       { email: values.email, password: values.password },
       {
-        onSuccess: () => router.push("/dashboard"),
+        onSuccess: () => router.push(paths.dashboard.root),
         onError: (ctx) =>
           setServerError(ctx.error.message ?? "Something went wrong"),
       },

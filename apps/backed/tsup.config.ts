@@ -13,4 +13,7 @@ export default defineConfig({
   sourcemap: false,
   minify: false,
   external: ['express', 'cors', 'dotenv', 'morgan', 'zod', 'http-status-codes', 'better-auth', 'mongoose', 'mongodb'],
+  // tsup externalizes package.json deps by default — bundle the workspace
+  // source-only package instead (it has no dist to load at runtime).
+  noExternal: ['@repo/database'],
 });

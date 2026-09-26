@@ -1,28 +1,17 @@
-import Link from "next/link";
+import { DownloadHeader } from "@/views/home/landing/download-header";
+import { Container } from "@repo/ui/components/core/container";
 
-export default function MarketingLayout({ children }: { children: React.ReactNode }) {
+export default function MarketingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <>
-      <header className="flex items-center justify-between border-b p-4">
-        <Link href="/" className="font-semibold">
-          Tickora
-        </Link>
-        <nav className="flex gap-4 text-sm">
-          <Link href="/login" className="underline-offset-4 hover:underline">
-            Sign in
-          </Link>
-          <Link href="/signup" className="underline-offset-4 hover:underline">
-            Create account
-          </Link>
-          <Link href="/dashboard" className="underline-offset-4 hover:underline">
-            Dashboard
-          </Link>
-        </nav>
-      </header>
-      {children}
-      <footer className="border-t p-4 text-center text-sm text-muted-foreground">
-        Tickora footer
-      </footer>
-    </>
+    <div>
+      <DownloadHeader />
+      <Container size="6xl" className="flex min-h-svh flex-col">
+        {children}
+      </Container>
+    </div>
   );
 }

@@ -9,6 +9,7 @@ import { Button } from "@repo/ui/components/core/button";
 import { authClient } from "@/lib/auth-client";
 import { AuthErrorAlert } from "../shared/auth-error-alert";
 import { resetSchema, type ResetFormValues } from "@repo/database/schemas";
+import { paths } from "@/utils/path-config";
 
 export function ResetForm() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export function ResetForm() {
     setServerError(null);
     const { error } = await authClient.resetPassword(
       { newPassword: values.password, token },
-      { onSuccess: () => router.push("/login") },
+      { onSuccess: () => router.push(paths.auth.login) },
     );
     if (error) setServerError(error.message ?? "Something went wrong");
   };

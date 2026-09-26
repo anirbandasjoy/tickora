@@ -3,7 +3,7 @@
 import { format } from "date-fns";
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { Button, ButtonProps } from "./button";
 import { Calendar } from "./calendar";

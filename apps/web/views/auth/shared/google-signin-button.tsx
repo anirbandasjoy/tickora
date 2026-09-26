@@ -5,6 +5,7 @@ import { Globe } from "lucide-react";
 import { Button } from "@repo/ui/components/core/button";
 import { signIn } from "@/lib/auth-client";
 import { AuthErrorAlert } from "./auth-error-alert";
+import { paths } from "@/utils/path-config";
 
 export function GoogleSigninButton() {
   const [pending, setPending] = useState(false);
@@ -13,7 +14,7 @@ export function GoogleSigninButton() {
   const handleClick = async () => {
     setError(null);
     const { error } = await signIn.social(
-      { provider: "google", callbackURL: "/dashboard" },
+      { provider: "google", callbackURL: paths.dashboard.root },
       {
         onRequest: () => setPending(true),
         onError: (ctx) => {

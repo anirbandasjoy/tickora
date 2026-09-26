@@ -1,14 +1,39 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
+import { paths } from "@/utils/path-config";
 
-const SESSION_COOKIE = "better-auth.session_token";
+const PUBLIC_ROUTES = [
+  paths.marketing.home,
+  paths.auth.login,
+  paths.auth.signup,
+  paths.auth.forgotPassword,
+  paths.auth.resetPassword,
+] as const;
 
 export default function proxy(request: NextRequest) {
-  if (!request.cookies.has(SESSION_COOKIE)) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  // Optimistic built-in check (presence only — real validation happens
+  // per page/route against the backend).
+  const hasSession = Boolean(getSessionCookie(request));
+  const { pathname } = request.nextUrl;
+
+  if (hasSession && (PUBLIC_ROUTES as readonly string[]).includes(pathname)) {
+    return NextResponse.redirect(new URL(paths.dashboard.root, request.url));
   }
+
+  if (!hasSession && pathname.startsWith(paths.dashboard.root)) {
+    return NextResponse.redirect(new URL(paths.auth.login, request.url));
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: [
+    "/",
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+    "/dashboard/:path*",
+  ],
 };

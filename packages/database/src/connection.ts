@@ -17,8 +17,10 @@ export async function connectDB(uri: string): Promise<typeof mongoose> {
 
 export async function getMongoClient(uri: string): Promise<MongoClient> {
   if (mongoClient) return mongoClient;
+  console.log('Connecting to MongoDB...');
   mongoClient = new MongoClient(uri);
   await mongoClient.connect();
+  console.log('MongoDB connected');
   return mongoClient;
 }
 

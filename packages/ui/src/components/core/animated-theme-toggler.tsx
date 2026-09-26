@@ -4,7 +4,7 @@ import { Moon, Sun } from "lucide-react";
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 export type TransitionVariant =
   | "circle"

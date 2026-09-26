@@ -15,6 +15,7 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { AuthErrorAlert } from "../shared/auth-error-alert";
 import { forgotSchema, type ForgotFormValues } from "@repo/database/schemas";
+import { paths } from "@/utils/path-config";
 
 export function ForgotForm() {
   const [serverError, setServerError] = useState<string | null>(null);
@@ -28,7 +29,7 @@ export function ForgotForm() {
     setServerError(null);
     const { error } = await authClient.requestPasswordReset({
       email: values.email,
-      redirectTo: "/reset-password",
+      redirectTo: paths.auth.resetPassword,
     });
     if (error) setServerError(error.message ?? "Something went wrong");
     else setSent(true);
