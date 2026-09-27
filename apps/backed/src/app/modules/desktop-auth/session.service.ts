@@ -17,20 +17,18 @@ type ExchangeResult =
   | { ok: false; code: number; message: string };
 
 export async function exchangeCode(
-  input: { requestId: string; code: string },
+  input: { requestId: string; code?: string },
   ctx: { ip: string | null; userAgent: string | null }
 ): Promise<ExchangeResult> {
   const { requestId, code } = input;
-
-  console.log('requestId', requestId);
-  console.log('code', code);
-  console.log('ctx', ctx);
 
   const stored = await findAuthRequest(requestId);
   if (!stored || stored.status !== 'AUTHORIZED' || stored.expiresAt.getTime() < Date.now()) {
     return { ok: false, code: 410, message: 'Code expired or invalid' };
   }
-  if (!verifyCode(stored.codeHash, code)) {
+  // Deep-link path: verify the one-time code. Polling path (no code):
+  // AUTHORIZED status + 192-bit requestId secrecy + atomic consume below.
+  if (code !== undefined && !verifyCode(stored.codeHash, code)) {
     return { ok: false, code: 401, message: 'Invalid code' };
   }
   const consumed = await consumeAuthRequest(requestId);
