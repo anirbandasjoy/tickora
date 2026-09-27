@@ -35,18 +35,6 @@ export function desktopAuthRouter(auth: Auth) {
       handler: catchAsync(controller.pending),
     },
     {
-      method: 'post',
-      path: '/:requestId/approve',
-      middlewares: [requireAuth, validateRequest({ params: requestIdParam })],
-      handler: catchAsync(controller.approve),
-    },
-    {
-      method: 'post',
-      path: '/:requestId/cancel',
-      middlewares: [validateRequest({ params: requestIdParam })],
-      handler: catchAsync(controller.cancel),
-    },
-    {
       method: 'get',
       path: '/status',
       middlewares: [validateRequest({ query: requestIdQuery })],
@@ -57,6 +45,12 @@ export function desktopAuthRouter(auth: Auth) {
       path: '/exchange',
       middlewares: [loginLimiter, validateRequest({ body: exchangeCodeSchema })],
       handler: catchAsync(sessionController.exchange),
+    },
+    {
+      method: 'get',
+      path: '/me',
+      middlewares: [requireDesktopAuth],
+      handler: catchAsync(sessionController.me),
     },
     {
       method: 'post',
@@ -83,10 +77,16 @@ export function desktopAuthRouter(auth: Auth) {
       handler: catchAsync(sessionController.revoke),
     },
     {
-      method: 'get',
-      path: '/me',
-      middlewares: [requireDesktopAuth],
-      handler: catchAsync(sessionController.me),
+      method: 'post',
+      path: '/:requestId/approve',
+      middlewares: [requireAuth, validateRequest({ params: requestIdParam })],
+      handler: catchAsync(controller.approve),
+    },
+    {
+      method: 'post',
+      path: '/:requestId/cancel',
+      middlewares: [validateRequest({ params: requestIdParam })],
+      handler: catchAsync(controller.cancel),
     },
   ]);
 

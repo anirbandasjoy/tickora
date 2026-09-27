@@ -39,6 +39,13 @@ export function useCompleteLogin({ onAuthorized, onError, onDone }: CompleteLogi
         const result = await exchangeCode(
           code === null ? { requestId: rid } : { requestId: rid, code },
         ).unwrap();
+        console.log('[CompleteLogin] Exchange successful:', {
+          hasRefreshToken: !!result.refreshToken,
+          tokenLength: result.refreshToken?.length,
+          deviceId: result.device?.id,
+          deviceName: result.device?.name,
+          expiresAt: result.expiresAt,
+        });
         const session: StoredSession = {
           refreshToken: result.refreshToken,
           deviceId: result.device.id,

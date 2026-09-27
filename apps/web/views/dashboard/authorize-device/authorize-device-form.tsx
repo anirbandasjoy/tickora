@@ -41,7 +41,12 @@ export function AuthorizeDeviceForm() {
                 disabled={data.status !== "PENDING"}
                 onClick={async () => {
                   const result = await approve({ requestId });
-                  if (!("error" in result)) router.push(paths.dashboard.root);
+                  if (!("error" in result) && result.data) {
+                    // Open the deep link to send the one-time code back to the desktop app
+                    window.location.href = result.data.deepLink;
+                    // Brief delay, then redirect to dashboard
+                    setTimeout(() => router.push(paths.dashboard.root), 500);
+                  }
                 }}
               >
                 Approve this device

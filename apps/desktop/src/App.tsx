@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { hooks } from "./lib/store";
-import { clearSession, loadSession } from "./lib/session-store";
+import { loadSession, saveSession } from "./lib/session-store";
 import { AuthProvider, useAuth } from "./features/auth/auth-context";
 import { listenForAuthLinks } from "./features/auth/deep-link-listener";
 import { useDeviceFlow } from "./features/auth/use-device-flow";
@@ -27,12 +27,31 @@ function AuthGate() {
   });
   const { completeLogin } = flow;
 
+  const [refreshSession] = hooks.useRefreshDesktopSessionMutation();
+
   useEffect(() => {
-    loadSession().then((stored) => {
-      if (stored) setAuthorized(stored);
-      else setUnauthorized();
+    loadSession().then(async (stored) => {
+      if (!stored) {
+        setUnauthorized();
+        return;
+      }
+      // Try to refresh the token to extend session on startup
+      try {
+        const result = await refreshSession({ refreshToken: stored.refreshToken }).unwrap();
+        const updated = {
+          ...stored,
+          refreshToken: result.refreshToken,
+          expiresAt: result.expiresAt,
+        };
+        await saveSession(updated);
+        setAuthorized(updated);
+      } catch {
+        // If refresh fails, try the existing token — it might still be valid
+        setAuthorized(stored);
+      }
     });
-  }, [setAuthorized, setUnauthorized]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -45,8 +64,11 @@ function AuthGate() {
   }, [completeLogin]);
 
   useEffect(() => {
-    if (validateSessions.isError) void signOut();
-  }, [validateSessions.isError, signOut]);
+    if (!validateSessions.isError) return;
+    const err = validateSessions.error as { status?: number } | undefined;
+    // Only sign out on explicit 401 Unauthorized, not transient network errors
+    if (err?.status === 401) void signOut();
+  }, [validateSessions.isError, validateSessions.error, signOut]);
 
   const handleSignOut = useCallback(async () => {
     try {
@@ -54,7 +76,7 @@ function AuthGate() {
     } catch {
       // Token already dead server-side; still clear locally.
     }
-    await clearSession();
+    // signOut() already calls clearSession() internally
     await signOut();
   }, [logoutRemote, signOut]);
 

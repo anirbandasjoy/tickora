@@ -1,8 +1,8 @@
-import mongoose from 'mongoose';
 import {
   appendEvent,
   findActiveFamilyMember,
   findSessionByHash,
+  findUserById,
   getDevice,
   listUserSessions,
   randomToken,
@@ -81,14 +81,5 @@ export async function refreshUserSession(refreshToken: string): Promise<RefreshR
 }
 
 export async function getDesktopProfile(userId: string) {
-  const db = mongoose.connection.db;
-  if (!db) return null;
-  const user = await db.collection('user').findOne({ id: userId });
-  if (!user) return null;
-  return {
-    id: user.id as string,
-    name: (user.name as string) ?? '',
-    email: user.email as string,
-    image: (user.image as string | null) ?? null,
-  };
+  return findUserById(userId);
 }

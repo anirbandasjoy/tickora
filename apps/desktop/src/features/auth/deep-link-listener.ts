@@ -1,6 +1,6 @@
 import { getCurrent, onOpenUrl } from "@tauri-apps/plugin-deep-link";
 
-const SCHEME = "tickora://auth";
+const SCHEME = "tickora:";
 
 export interface AuthCallback {
   code: string;
@@ -10,7 +10,10 @@ export interface AuthCallback {
 function parseAuthUrl(raw: string): AuthCallback | null {
   if (!raw.startsWith(SCHEME)) return null;
   try {
-    const url = new URL(raw);
+    // On Linux/XDG the URL may arrive as tickora:///auth?... (triple slash)
+    // or tickora://auth?... (double slash). Normalise to a parseable form.
+    const normalised = raw.replace(/^tickora:\/{0,3}/, "tickora://");
+    const url = new URL(normalised);
     const code = url.searchParams.get("code");
     const requestId = url.searchParams.get("requestId");
     if (!code || !requestId) return null;

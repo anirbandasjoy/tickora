@@ -29,6 +29,7 @@ export * from './models/work/activity-event.model';
 export * from './models/settings/user-setting.model';
 export * from './models/api/api-key.model';
 export * from './repositories/note.repository';
+export * from './repositories/auth/user.repository';
 export * from './repositories/desktop/desktop-device.repository';
 export * from './repositories/desktop/desktop-session.repository';
 export * from './repositories/desktop/desktop-session-manage.repository';

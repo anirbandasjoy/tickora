@@ -11,12 +11,15 @@ export function WelcomeScreen({ deviceName, onContinue }: WelcomeScreenProps) {
     <main className="flex min-h-screen items-center justify-center p-6">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Welcome to Tickora Desktop</CardTitle>
-          <CardDescription>{deviceName} is connected</CardDescription>
+          <div className="mx-auto mb-3 flex size-16 items-center justify-center rounded-full bg-green-500/10">
+            <span className="text-3xl">✅</span>
+          </div>
+          <CardTitle className="text-center">Authentication Successful</CardTitle>
+          <CardDescription className="text-center">{deviceName} is connected</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
           <p className="text-center text-sm text-muted-foreground">
-            Your device is signed in. Time tracking is ready whenever you are.
+            Your device is signed in successfully. Time tracking is ready whenever you are.
           </p>
           <Button className="w-full" onClick={onContinue}>
             Continue

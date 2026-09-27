@@ -18,10 +18,12 @@ export interface CookieIdentity {
 export async function authenticateDesktop(req: Request): Promise<DesktopIdentity | null> {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) return null;
+
   const token = header.slice('Bearer '.length).trim();
   if (!token) return null;
 
-  const session = await findValidSessionByHash(sha256Hex(token));
+  const tokenHash = sha256Hex(token);
+  const session = await findValidSessionByHash(tokenHash);
   if (!session) return null;
 
   const device = await getDevice(String(session.deviceId), session.userId);
