@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SettingsView } from "../../../views/dashboard/settings/settings-view";
+import { SettingsView } from "@/views/dashboard/settings/settings-view";
 
 export const metadata: Metadata = { title: "Settings" };
 

@@ -7,6 +7,7 @@ export const paths = {
     signup: "/signup",
     forgotPassword: "/forgot-password",
     resetPassword: "/reset-password",
+    verifyEmail: "/verify-email",
   },
   dashboard: {
     root: "/dashboard",

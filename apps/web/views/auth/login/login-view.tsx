@@ -6,10 +6,10 @@ import { useRouter } from "next/navigation";
 import { Separator } from "@repo/ui/components/core/separator";
 import { useSession } from "@/lib/auth-client";
 import { paths } from "@/utils/path-config";
-import { AuthCard } from "../shared/auth-card";
-import { AuthLoading } from "../../shared/auth-loading";
-import { GoogleSigninButton } from "../shared/google-signin-button";
-import { LoginForm } from "./login-form";
+import { AuthCard } from "@/views/auth/shared/auth-card";
+import { AuthLoading } from "@/views/shared/auth-loading";
+import { GoogleSigninButton } from "@/views/auth/shared/google-signin-button";
+import { LoginForm } from "@/views/auth/login/login-form";
 
 export function LoginView() {
   const router = useRouter();

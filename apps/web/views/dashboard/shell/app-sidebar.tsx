@@ -13,7 +13,7 @@ import {
 import { NavMain } from "@repo/ui/components/core/nav-main";
 import { NavUser } from "@repo/ui/components/core/nav-user";
 import { TeamSwitcher } from "@repo/ui/components/core/team-switcher";
-import { Logo } from "../../../components/common/logo";
+import { Logo } from "@/components/common/logo";
 import { useAppSelector } from "@/lib/redux/hooks";
 import { paths } from "@/utils/path-config";
 

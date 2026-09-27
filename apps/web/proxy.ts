@@ -8,6 +8,7 @@ const PUBLIC_ROUTES = [
   paths.auth.signup,
   paths.auth.forgotPassword,
   paths.auth.resetPassword,
+  paths.auth.verifyEmail,
 ] as const;
 
 export default function proxy(request: NextRequest) {
@@ -34,6 +35,7 @@ export const config = {
     "/signup",
     "/forgot-password",
     "/reset-password",
+    "/verify-email",
     "/dashboard/:path*",
   ],
 };

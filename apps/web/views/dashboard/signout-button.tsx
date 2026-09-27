@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@repo/ui/components/core/button";
-import { ConfirmModal } from "../../components/common/confirm-modal";
+import { ConfirmModal } from "@/components/common/confirm-modal";
 import { signOut } from "@/lib/auth-client";
 import { useAppDispatch } from "@/lib/redux/hooks";
 import { clearSession } from "@/lib/redux/features/auth/auth-slice";

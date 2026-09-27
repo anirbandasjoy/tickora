@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { AuthCard } from "../shared/auth-card";
-import { ForgotForm } from "./forgot-form";
+import { AuthCard } from "@/views/auth/shared/auth-card";
+import { ForgotForm } from "@/views/auth/forgot-password/forgot-form";
 import { paths } from "@/utils/path-config";
 
 export function ForgotView() {

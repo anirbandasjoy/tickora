@@ -13,7 +13,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@repo/ui/components/core/breadcrumb";
-import { SignoutButton } from "../signout-button";
+import { SignoutButton } from "@/views/dashboard/signout-button";
 
 function labelFor(segment: string) {
   return segment.charAt(0).toUpperCase() + segment.slice(1);

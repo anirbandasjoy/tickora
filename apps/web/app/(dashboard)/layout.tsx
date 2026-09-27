@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { DashboardShell } from "../../views/dashboard/shell/dashboard-shell";
+import { DashboardShell } from "@/views/dashboard/shell/dashboard-shell";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { CircleCheck, Mail } from "lucide-react";
 import { RHFTextField } from "@repo/ui/components/form/rhf/rhf-text-field";
 import { Button } from "@repo/ui/components/core/button";
@@ -13,12 +14,10 @@ import {
   AlertIcon,
 } from "@repo/ui/components/core/alert";
 import { authClient } from "@/lib/auth-client";
-import { AuthErrorAlert } from "../shared/auth-error-alert";
 import { forgotSchema, type ForgotFormValues } from "@repo/database/schemas";
 import { paths } from "@/utils/path-config";
 
 export function ForgotForm() {
-  const [serverError, setServerError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const { control, handleSubmit, formState } = useForm<ForgotFormValues>({
     resolver: zodResolver(forgotSchema),
@@ -26,12 +25,11 @@ export function ForgotForm() {
   });
 
   const onSubmit = async (values: ForgotFormValues) => {
-    setServerError(null);
     const { error } = await authClient.requestPasswordReset({
       email: values.email,
       redirectTo: paths.auth.resetPassword,
     });
-    if (error) setServerError(error.message ?? "Something went wrong");
+    if (error) toast.error(error.message ?? "Something went wrong");
     else setSent(true);
   };
 
@@ -60,7 +58,6 @@ export function ForgotForm() {
         placeholder="you@example.com"
         autoComplete="email"
       />
-      <AuthErrorAlert message={serverError} />
       <Button
         type="submit"
         variant="primary"

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Toaster } from "@repo/ui/components/core/sonner";
-import { TopLoader } from "../components/shared/top-loader";
+import { TopLoader } from "@/components/shared/top-loader";
 import { Providers } from "./providers";
 import "@repo/ui/globals.css";
 

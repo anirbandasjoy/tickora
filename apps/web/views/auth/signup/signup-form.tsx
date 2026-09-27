@@ -1,37 +1,36 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Mail } from "lucide-react";
 import { RHFTextField } from "@repo/ui/components/form/rhf/rhf-text-field";
 import { RHFPasswordField } from "@repo/ui/components/form/rhf/rhf-password-field";
 import { Button } from "@repo/ui/components/core/button";
 import { signUp } from "@/lib/auth-client";
-import { AuthErrorAlert } from "../shared/auth-error-alert";
 import { signupSchema, type SignupFormValues } from "@repo/database/schemas";
-import { paths } from "@/utils/path-config";
 
-export function SignupForm() {
-  const router = useRouter();
-  const [serverError, setServerError] = useState<string | null>(null);
+export function SignupForm({ onSent }: { onSent: (email: string) => void }) {
   const { control, handleSubmit, formState } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
   });
 
   const onSubmit = async (values: SignupFormValues) => {
-    setServerError(null);
+    const displayName =
+      values.name?.trim() ||
+      values.email.split("@")[0]?.replace(/[._-]+/g, " ").trim() ||
+      values.email;
     const { error } = await signUp.email(
-      { name: values.name, email: values.email, password: values.password },
+      { name: displayName, email: values.email, password: values.password },
       {
-        onSuccess: () => router.push(paths.dashboard.root),
-        onError: (ctx) =>
-          setServerError(ctx.error.message ?? "Something went wrong"),
+        onSuccess: () => onSent(values.email),
+        onError: (ctx) => {
+          toast.error(ctx.error.message ?? "Something went wrong");
+        },
       },
     );
-    if (error) setServerError(error.message ?? "Something went wrong");
+    if (error) toast.error(error.message ?? "Something went wrong");
   };
 
   return (
@@ -58,7 +57,6 @@ export function SignupForm() {
         placeholder="********"
         autoComplete="new-password"
       />
-      <AuthErrorAlert message={serverError} />
       <Button
         type="submit"
         variant="primary"

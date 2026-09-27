@@ -1,5 +1,5 @@
+import { LoginView } from "@/views/auth/login/login-view";
 import type { Metadata } from "next";
-import { LoginView } from "../../../views/auth/login/login-view";
 
 export const metadata: Metadata = { title: "Sign in" };
 

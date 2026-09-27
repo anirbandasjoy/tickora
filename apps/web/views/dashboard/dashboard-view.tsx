@@ -5,7 +5,7 @@ import { useGetMeQuery } from "@/lib/redux/services/api";
 import { useAppSelector } from "@/lib/redux/hooks";
 import { signOut } from "@/lib/auth-client";
 import { ProfileCard } from "./profile-card";
-import { AuthLoading } from "../shared/auth-loading";
+import { AuthLoading } from "@/views/shared/auth-loading";
 import { paths } from "@/utils/path-config";
 
 export function DashboardView() {

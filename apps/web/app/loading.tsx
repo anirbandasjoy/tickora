@@ -1,4 +1,4 @@
-import { AuthLoading } from "../views/shared/auth-loading";
+import { AuthLoading } from "@/views/shared/auth-loading";
 
 export default function Loading() {
   return (

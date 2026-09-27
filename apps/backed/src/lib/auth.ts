@@ -20,6 +20,7 @@ export async function initAuth() {
     }),
     emailAndPassword: {
       enabled: true,
+      requireEmailVerification: true,
       minPasswordLength: 8,
       autoSignIn: true,
       resetPasswordTokenExpiresIn: 3600,
@@ -38,6 +39,21 @@ export async function initAuth() {
       cookieCache: {
         enabled: true,
         maxAge: 7 * 24 * 60 * 60,
+      },
+    },
+    emailVerification: {
+      sendOnSignUp: true,
+      autoSignInAfterVerification: true,
+      sendVerificationEmail: async ({ user, token }) => {
+        // Build the frontend link (the default url points at the API origin).
+        const url = `${config.CLIENT_URI}/verify-email?token=${token}&callbackURL=/dashboard`;
+        // Fire-and-forget to avoid timing attacks (official guidance).
+        void sendEmail({
+          to: user.email,
+          subject: 'Verify your email address',
+          text: `Verify your email: ${url}`,
+          html: `<p>Verify your email: <a href="${url}">${url}</a></p>`,
+        });
       },
     },
     socialProviders: {

@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { Session } from "@/lib/auth-client";
-import { authApi } from "../../services/api";
+import { authApi } from "@/lib/redux/services/api";
 
 type AuthStatus = "idle" | "loading" | "authed" | "guest";
 

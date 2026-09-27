@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { RHFPasswordField } from "@repo/ui/components/form/rhf/rhf-password-field";
 import { Button } from "@repo/ui/components/core/button";
 import { authClient } from "@/lib/auth-client";
-import { AuthErrorAlert } from "../shared/auth-error-alert";
+import { AuthErrorAlert } from "@/views/auth/shared/auth-error-alert";
 import { resetSchema, type ResetFormValues } from "@repo/database/schemas";
 import { paths } from "@/utils/path-config";
 
@@ -30,7 +31,7 @@ export function ResetForm() {
       { newPassword: values.password, token },
       { onSuccess: () => router.push(paths.auth.login) },
     );
-    if (error) setServerError(error.message ?? "Something went wrong");
+    if (error) toast.error(error.message ?? "Something went wrong");
   };
 
   return (

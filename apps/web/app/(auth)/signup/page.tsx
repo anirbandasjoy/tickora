@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SignupView } from "../../../views/auth/signup/signup-view";
+import { SignupView } from "@/views/auth/signup/signup-view";
 
 export const metadata: Metadata = { title: "Create account" };
 

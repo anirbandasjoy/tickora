@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/ui/components/core/card";
-import { Logo } from "../../../components/common/logo";
+import { Logo } from "@/components/common/logo";
 import { paths } from "@/utils/path-config";
 
 export function AuthCard({

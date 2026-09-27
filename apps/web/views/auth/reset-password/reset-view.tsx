@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { AuthCard } from "../shared/auth-card";
-import { ResetForm } from "./reset-form";
+import { AuthCard } from "@/views/auth/shared/auth-card";
+import { ResetForm } from "@/views/auth/reset-password/reset-form";
 
 export function ResetView() {
   return (

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@repo/ui/components/core/badge";
 import { Button } from "@repo/ui/components/core/button";
-import { Logo } from "../../../components/common/logo";
+import { Logo } from "@/components/common/logo";
 import { paths } from "@/utils/path-config";
 
 export function DownloadHeader() {
