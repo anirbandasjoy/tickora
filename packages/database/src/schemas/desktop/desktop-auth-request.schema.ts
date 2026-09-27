@@ -30,7 +30,10 @@ export const requestIdQuery = z.object({
 export const exchangeCodeSchema = z
   .object({
     requestId: z.string().min(16).max(128),
-    code: z.string().min(16).max(256),
+    // Optional: deep-link path supplies the one-time code and it is verified.
+    // Polling path omits it; AUTHORIZED status + requestId secrecy +
+    // atomic one-time consume provide equivalent assurance.
+    code: z.string().min(16).max(256).optional(),
   })
   .strict();
 

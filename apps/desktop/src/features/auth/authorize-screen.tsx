@@ -12,6 +12,7 @@ interface AuthorizeScreenProps {
   started: boolean;
   remoteStatus: string | null;
   exchanging: boolean;
+  pollingError: boolean;
   error: string | null;
   onStart: () => void;
 }
@@ -20,6 +21,7 @@ export function AuthorizeScreen({
   started,
   remoteStatus,
   exchanging,
+  pollingError,
   error,
   onStart,
 }: AuthorizeScreenProps) {
@@ -51,6 +53,11 @@ export function AuthorizeScreen({
               <Button appearance="outline" onClick={onStart}>
                 Reopen browser
               </Button>
+              {pollingError && (
+                <p className="text-sm text-destructive">
+                  Connection to the server lost — retrying…
+                </p>
+              )}
             </>
           ) : (
             <Button className="w-full" onClick={onStart}>

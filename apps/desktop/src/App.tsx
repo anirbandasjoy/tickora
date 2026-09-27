@@ -66,6 +66,7 @@ function AuthGate() {
         started={flow.requestId !== null}
         remoteStatus={flow.remoteStatus}
         exchanging={flow.exchanging}
+        pollingError={flow.pollingError}
         error={flowError}
         onStart={() => {
           setFlowError(null);

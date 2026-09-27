@@ -18,9 +18,14 @@ type ExchangeResult =
 
 export async function exchangeCode(
   input: { requestId: string; code: string },
-  ctx: { ip: string | null; userAgent: string | null },
+  ctx: { ip: string | null; userAgent: string | null }
 ): Promise<ExchangeResult> {
   const { requestId, code } = input;
+
+  console.log('requestId', requestId);
+  console.log('code', code);
+  console.log('ctx', ctx);
+
   const stored = await findAuthRequest(requestId);
   if (!stored || stored.status !== 'AUTHORIZED' || stored.expiresAt.getTime() < Date.now()) {
     return { ok: false, code: 410, message: 'Code expired or invalid' };
@@ -46,7 +51,7 @@ export async function exchangeCode(
         osVersion: null,
         appVersion: consumed.appVersion,
       },
-      session,
+      session
     );
     const doc = await createDesktopSession(
       {
@@ -58,11 +63,11 @@ export async function exchangeCode(
         ipAddress: ctx.ip,
         userAgent: ctx.userAgent,
       },
-      session,
+      session
     );
     await appendEvent(
       { userId, workSessionId: null, deviceId: String(device._id), type: 'DEVICE_ONLINE' },
-      session,
+      session
     );
     return { doc, device };
   });

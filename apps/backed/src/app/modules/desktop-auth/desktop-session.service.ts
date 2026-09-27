@@ -24,12 +24,14 @@ export const sessionShape = (s: { _id: unknown; deviceId: unknown; expiresAt: Da
 });
 
 export async function exchangeCode(req: Request, res: Response) {
-  const { requestId, code } = req.body as { requestId: string; code: string };
+  const { requestId, code } = req.body as { requestId: string; code?: string };
   const stored = await findAuthRequest(requestId);
   if (!stored || stored.status !== 'AUTHORIZED' || stored.expiresAt.getTime() < Date.now()) {
     return sendErrorResponse(res, { statusCode: StatusCodes.GONE, message: 'Code expired or invalid' });
   }
-  if (!verifyCode(stored.codeHash, code)) {
+  // Deep-link path: verify the one-time code. Polling path (no code):
+  // AUTHORIZED status + 192-bit requestId secrecy + atomic consume below.
+  if (code !== undefined && !verifyCode(stored.codeHash, code)) {
     return sendErrorResponse(res, { statusCode: StatusCodes.UNAUTHORIZED, message: 'Invalid code' });
   }
   const consumed = await consumeAuthRequest(requestId);
