@@ -73,3 +73,15 @@ export async function listPendingForUser(
     expiresAt: { $gt: new Date() },
   }).sort({ createdAt: -1 });
 }
+
+export async function updateAuthRequestDevice(
+  requestId: string,
+  deviceId: string,
+  session?: ClientSession,
+): Promise<DesktopAuthRequestDocument | null> {
+  return DesktopAuthRequestModel.findOneAndUpdate(
+    { requestId },
+    { deviceId },
+    { new: true, session },
+  );
+}

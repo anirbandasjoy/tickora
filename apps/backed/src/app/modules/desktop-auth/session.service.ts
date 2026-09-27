@@ -6,6 +6,7 @@ import {
   randomToken,
   registerDevice,
   sha256Hex,
+  updateAuthRequestDevice,
 } from '@repo/database';
 import { withTransaction } from '@/utils/withTransaction';
 import { verifyCode } from './desktop-auth.service';
@@ -51,6 +52,10 @@ export async function exchangeCode(
       },
       session
     );
+    
+    // Update the auth request with the deviceId
+    await updateAuthRequestDevice(requestId, String(device._id), session);
+    
     const doc = await createDesktopSession(
       {
         userId,

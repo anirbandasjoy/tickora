@@ -36,7 +36,7 @@ export async function authenticateDesktop(req: Request): Promise<DesktopIdentity
 
 export async function authenticateCookie(
   auth: Auth,
-  req: Request,
+  req: Request
 ): Promise<{ user: CookieIdentity; sessionId: string } | null> {
   const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
   if (!session) return null;
