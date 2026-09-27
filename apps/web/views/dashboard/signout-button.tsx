@@ -6,9 +6,9 @@ import { LogOut } from "lucide-react";
 import { Button } from "@repo/ui/components/core/button";
 import { ConfirmModal } from "@/components/common/confirm-modal";
 import { signOut } from "@/lib/auth-client";
-import { useAppDispatch } from "@/lib/redux/hooks";
-import { clearSession } from "@/lib/redux/features/auth/auth-slice";
-import { baseApi } from "@/lib/redux/services/api";
+import { useAppDispatch } from "@repo/store";
+import { clearSession } from "@repo/store";
+import { apis } from "@/lib/store";
 import { paths } from "@/utils/path-config";
 
 export function SignoutButton() {
@@ -21,7 +21,7 @@ export function SignoutButton() {
     await signOut(undefined, {
       onSuccess: () => {
         dispatch(clearSession());
-        dispatch(baseApi.util.invalidateTags(["Session"]));
+        dispatch(apis.baseApi.util.invalidateTags(["Session"]));
         router.push(paths.auth.login);
       },
     });

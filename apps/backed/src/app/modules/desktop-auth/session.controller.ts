@@ -52,3 +52,11 @@ export async function revoke(req: Request, res: Response) {
   await manageService.revokeUserSession(userIdOf(req), String(req.params.id));
   return sendSuccessResponse(res, { data: { revoked: true } });
 }
+
+export async function me(req: Request, res: Response) {
+  const profile = await manageService.getDesktopProfile(req.desktop!.userId);
+  if (!profile) {
+    return sendErrorResponse(res, { statusCode: StatusCodes.NOT_FOUND, message: 'User not found' });
+  }
+  return sendSuccessResponse(res, { data: { user: profile } });
+}

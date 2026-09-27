@@ -25,6 +25,10 @@ export default function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(paths.auth.login, request.url));
   }
 
+  if (!hasSession && pathname === paths.dashboard.authorizeDevice) {
+    return NextResponse.redirect(new URL(paths.auth.login, request.url));
+  }
+
   return NextResponse.next();
 }
 
@@ -36,6 +40,7 @@ export const config = {
     "/forgot-password",
     "/reset-password",
     "/verify-email",
+    "/authorize-device",
     "/dashboard/:path*",
   ],
 };

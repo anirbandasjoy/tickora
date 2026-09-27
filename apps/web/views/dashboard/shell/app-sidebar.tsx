@@ -14,7 +14,7 @@ import { NavMain } from "@repo/ui/components/core/nav-main";
 import { NavUser } from "@repo/ui/components/core/nav-user";
 import { TeamSwitcher } from "@repo/ui/components/core/team-switcher";
 import { Logo } from "@/components/common/logo";
-import { useAppSelector } from "@/lib/redux/hooks";
+import { useAppSelector } from "@repo/store";
 import { paths } from "@/utils/path-config";
 
 const navItems = [
@@ -24,7 +24,7 @@ const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const user = useAppSelector((s) => s.auth.user);
+  const user = useAppSelector((s) => s.session.user);
 
   return (
     <Sidebar variant="inset" collapsible="icon">

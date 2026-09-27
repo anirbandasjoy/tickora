@@ -1,0 +1,55 @@
+import type { WiredApis } from "./wire-apis";
+
+export function collectHooks(apis: WiredApis) {
+  const {
+    sessionApi,
+    timerApi,
+    projectsApi,
+    devicesApi,
+    settingsApi,
+    activityApi,
+    reportsApi,
+    apiKeysApi,
+    desktopAuthApi,
+  } = apis;
+  return {
+    useGetMeQuery: sessionApi.useGetMeQuery,
+    useStartTimerMutation: timerApi.useStartTimerMutation,
+    useStopTimerMutation: timerApi.useStopTimerMutation,
+    useHeartbeatTimerMutation: timerApi.useHeartbeatTimerMutation,
+    useSyncSessionsMutation: timerApi.useSyncSessionsMutation,
+    useActiveTimerQuery: timerApi.useActiveTimerQuery,
+    useListTimersQuery: timerApi.useListTimersQuery,
+    useCreateProjectMutation: projectsApi.useCreateProjectMutation,
+    useListProjectsQuery: projectsApi.useListProjectsQuery,
+    useGetProjectQuery: projectsApi.useGetProjectQuery,
+    useUpdateProjectMutation: projectsApi.useUpdateProjectMutation,
+    useArchiveProjectMutation: projectsApi.useArchiveProjectMutation,
+    useUnarchiveProjectMutation: projectsApi.useUnarchiveProjectMutation,
+    useDeleteProjectMutation: projectsApi.useDeleteProjectMutation,
+    useListDevicesQuery: devicesApi.useListDevicesQuery,
+    useHeartbeatDeviceMutation: devicesApi.useHeartbeatDeviceMutation,
+    useRenameDeviceMutation: devicesApi.useRenameDeviceMutation,
+    useRevokeDeviceMutation: devicesApi.useRevokeDeviceMutation,
+    useGetSettingsQuery: settingsApi.useGetSettingsQuery,
+    useUpdateSettingsMutation: settingsApi.useUpdateSettingsMutation,
+    useListActivityQuery: activityApi.useListActivityQuery,
+    useGetReportSummaryQuery: reportsApi.useGetReportSummaryQuery,
+    useCreateApiKeyMutation: apiKeysApi.useCreateApiKeyMutation,
+    useListApiKeysQuery: apiKeysApi.useListApiKeysQuery,
+    useRevokeApiKeyMutation: apiKeysApi.useRevokeApiKeyMutation,
+    usePublicStatusQuery: apiKeysApi.usePublicStatusQuery,
+    useRequestDesktopAuthMutation: desktopAuthApi.useRequestDesktopAuthMutation,
+    useDesktopAuthStatusQuery: desktopAuthApi.useDesktopAuthStatusQuery,
+    useApproveDesktopAuthMutation: desktopAuthApi.useApproveDesktopAuthMutation,
+    useCancelDesktopAuthMutation: desktopAuthApi.useCancelDesktopAuthMutation,
+    useExchangeCodeMutation: desktopAuthApi.useExchangeCodeMutation,
+    useRefreshDesktopSessionMutation: desktopAuthApi.useRefreshDesktopSessionMutation,
+    useLogoutDesktopSessionMutation: desktopAuthApi.useLogoutDesktopSessionMutation,
+    useListDesktopSessionsQuery: desktopAuthApi.useListDesktopSessionsQuery,
+    useRevokeDesktopSessionMutation: desktopAuthApi.useRevokeDesktopSessionMutation,
+    useDesktopMeQuery: desktopAuthApi.useDesktopMeQuery,
+  };
+}
+
+export type AppHooks = ReturnType<typeof collectHooks>;

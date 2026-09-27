@@ -1,9 +1,9 @@
 import { User } from "lucide-react";
 import { Avatar, AvatarFallback } from "@repo/ui/components/core/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@repo/ui/components/core/card";
-import type { Session } from "@/lib/auth-client";
+import type { SessionUser } from "@repo/database";
 
-export function ProfileCard({ user }: { user: Session["user"] }) {
+export function ProfileCard({ user }: { user: SessionUser }) {
   const initials = user.name
     .split(" ")
     .map((p) => p[0])

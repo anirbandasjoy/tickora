@@ -27,12 +27,13 @@ export async function initAuth() {
       revokeSessionsOnPasswordReset: true,
       sendResetPassword: async ({ user, url }) => {
         // Fire-and-forget to avoid timing attacks (official guidance).
+        // .catch() is mandatory: an unhandled rejection crashes Node.
         void sendEmail({
           to: user.email,
           subject: 'Reset your password',
           text: `Reset your password: ${url}`,
           html: `<p>Reset your password: <a href="${url}">${url}</a></p>`,
-        });
+        }).catch((err) => console.error('Reset email failed:', err));
       },
     },
     session: {
@@ -48,12 +49,13 @@ export async function initAuth() {
         // Build the frontend link (the default url points at the API origin).
         const url = `${config.CLIENT_URI}/verify-email?token=${token}&callbackURL=/dashboard`;
         // Fire-and-forget to avoid timing attacks (official guidance).
+        // .catch() is mandatory: an unhandled rejection crashes Node.
         void sendEmail({
           to: user.email,
           subject: 'Verify your email address',
           text: `Verify your email: ${url}`,
           html: `<p>Verify your email: <a href="${url}">${url}</a></p>`,
-        });
+        }).catch((err) => console.error('Verification email failed:', err));
       },
     },
     socialProviders: {

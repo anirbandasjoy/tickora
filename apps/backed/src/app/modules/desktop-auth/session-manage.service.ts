@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import {
   appendEvent,
   findActiveFamilyMember,
@@ -77,4 +78,17 @@ export async function refreshUserSession(refreshToken: string): Promise<RefreshR
     return { ok: false, message: 'Token reused' };
   }
   return { ok: true, refreshToken: rawToken, expiresAt: rotated.expiresAt };
+}
+
+export async function getDesktopProfile(userId: string) {
+  const db = mongoose.connection.db;
+  if (!db) return null;
+  const user = await db.collection('user').findOne({ id: userId });
+  if (!user) return null;
+  return {
+    id: user.id as string,
+    name: (user.name as string) ?? '',
+    email: user.email as string,
+    image: (user.image as string | null) ?? null,
+  };
 }

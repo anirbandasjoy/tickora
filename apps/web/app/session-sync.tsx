@@ -2,8 +2,7 @@
 
 import { useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
-import { useAppDispatch } from "@/lib/redux/hooks";
-import { clearSession, setCredentials } from "@/lib/redux/features/auth/auth-slice";
+import { clearSession, setSession, useAppDispatch } from "@repo/store";
 
 export function SessionSync({ children }: { children: React.ReactNode }) {
   const dispatch = useAppDispatch();
@@ -11,8 +10,18 @@ export function SessionSync({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isPending) return;
-    if (session) dispatch(setCredentials(session));
-    else dispatch(clearSession());
+    // Sanitize to plain SessionUser: the better-auth client user carries
+    // Date instances (createdAt/updatedAt) which must never enter Redux.
+    if (session) {
+      dispatch(
+        setSession({
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.name,
+          image: session.user.image ?? null,
+        }),
+      );
+    } else dispatch(clearSession());
   }, [session, isPending, dispatch]);
 
   return <>{children}</>;

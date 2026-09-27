@@ -9,7 +9,7 @@ import { Mail } from "lucide-react";
 import { RHFTextField } from "@repo/ui/components/form/rhf/rhf-text-field";
 import { RHFPasswordField } from "@repo/ui/components/form/rhf/rhf-password-field";
 import { Button } from "@repo/ui/components/core/button";
-import { authClient, signIn } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { loginSchema, type LoginFormValues } from "@repo/database/schemas";
 import { paths } from "@/utils/path-config";
 import { VerifyNotice } from "@/views/auth/login/verify-notice";
@@ -27,7 +27,7 @@ export function LoginForm() {
   const onSubmit = async (values: LoginFormValues) => {
     setUnverifiedEmail(null);
     setResent(false);
-    const { error } = await signIn.email(
+    const { error } = await authClient.signIn.email(
       { email: values.email, password: values.password },
       {
         onSuccess: () => router.push(paths.dashboard.root),

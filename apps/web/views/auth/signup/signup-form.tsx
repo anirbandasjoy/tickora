@@ -7,7 +7,7 @@ import { Mail } from "lucide-react";
 import { RHFTextField } from "@repo/ui/components/form/rhf/rhf-text-field";
 import { RHFPasswordField } from "@repo/ui/components/form/rhf/rhf-password-field";
 import { Button } from "@repo/ui/components/core/button";
-import { signUp } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { signupSchema, type SignupFormValues } from "@repo/database/schemas";
 
 export function SignupForm({ onSent }: { onSent: (email: string) => void }) {
@@ -21,7 +21,7 @@ export function SignupForm({ onSent }: { onSent: (email: string) => void }) {
       values.name?.trim() ||
       values.email.split("@")[0]?.replace(/[._-]+/g, " ").trim() ||
       values.email;
-    const { error } = await signUp.email(
+    const { error } = await authClient.signUp.email(
       { name: displayName, email: values.email, password: values.password },
       {
         onSuccess: () => onSent(values.email),

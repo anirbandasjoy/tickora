@@ -82,6 +82,12 @@ export function desktopAuthRouter(auth: Auth) {
       middlewares: [requireDesktopAuth, validateRequest({ params: objectIdParam })],
       handler: catchAsync(sessionController.revoke),
     },
+    {
+      method: 'get',
+      path: '/me',
+      middlewares: [requireDesktopAuth],
+      handler: catchAsync(sessionController.me),
+    },
   ]);
 
   return router;

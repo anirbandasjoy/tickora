@@ -4,14 +4,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@repo/ui/components/core/button";
 import { GoogleIcon } from "@/components/common/google-icon";
-import { signIn } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { paths } from "@/utils/path-config";
 
 export function GoogleSigninButton() {
   const [pending, setPending] = useState(false);
 
   const handleClick = async () => {
-    const { error } = await signIn.social(
+    const { error } = await authClient.signIn.social(
       { provider: "google", callbackURL: paths.dashboard.root },
       {
         onRequest: () => setPending(true),

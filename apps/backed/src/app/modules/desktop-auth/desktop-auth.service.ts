@@ -16,7 +16,7 @@ export async function createRequest(input: RequestDesktopAuthInput) {
   const doc = await createAuthRequest(input, requestId);
   return {
     requestId: doc.requestId,
-    authorizeUrl: `${config.CLIENT_URI}/desktop/authorize?requestId=${doc.requestId}`,
+    authorizeUrl: `${config.CLIENT_URI}/authorize-device?requestId=${doc.requestId}`,
     expiresAt: doc.expiresAt,
   };
 }
