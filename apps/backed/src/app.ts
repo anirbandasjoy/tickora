@@ -25,6 +25,16 @@ export function createApp(auth: Auth) {
   // work correctly in production.
   app.set('trust proxy', 1);
 
+  // Auth/device polling endpoints must never be cacheable: Express ETags
+  // make browsers/WebKit send conditional GETs → 304 empty bodies, which
+  // break RTK Query's `res => res.data` transform on both web and desktop.
+  app.set('etag', false);
+  app.use('/api', (_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('Pragma', 'no-cache');
+    next();
+  });
+
   app.use(morgan(config.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
   // Better Auth handler must be mounted BEFORE body parsers, otherwise

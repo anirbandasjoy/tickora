@@ -116,6 +116,15 @@ export function useDeviceFlow({ onAuthorized, onError }: DeviceFlowCallbacks) {
     setAuthorizeUrl(null);
   }, [requestId, cancelAuthRequest]);
 
+  // Idle reset: clear stale flow state without server calls or error
+  // messages. Used after successful login and on sign-out so the login
+  // screen never shows a stale "Waiting for browser approval…" card.
+  const resetFlow = useCallback(() => {
+    setFinished(true);
+    setRequestId(null);
+    setAuthorizeUrl(null);
+  }, []);
+
   const statusErr = statusQuery.error as { status?: number } | undefined;
   return {
     requestId,
@@ -131,6 +140,7 @@ export function useDeviceFlow({ onAuthorized, onError }: DeviceFlowCallbacks) {
     exchanging,
     startLogin,
     cancelLogin,
+    resetFlow,
     completeLogin,
   };
 }

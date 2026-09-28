@@ -27,9 +27,12 @@ export function AuthorizeDeviceForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestId = searchParams.get("requestId") ?? "";
-  const { data, isLoading, isError, refetch } = hooks.useDesktopAuthStatusQuery(
+  // Terminal states need no further polling: the request reached its final
+  // state (consumed by the desktop, expired, or cancelled/denied).
+  const [settled, setSettled] = useState(false);
+  const { data, isLoading, isError, error, refetch } = hooks.useDesktopAuthStatusQuery(
     { requestId },
-    { skip: !requestId, pollingInterval: 2000 },
+    { skip: !requestId || settled, pollingInterval: 2000 },
   );
   const [approve, { isLoading: approving }] = hooks.useApproveDesktopAuthMutation();
   const [cancel, { isLoading: cancelling }] = hooks.useCancelDesktopAuthMutation();
@@ -39,6 +42,22 @@ export function AuthorizeDeviceForm() {
 
   const status = data?.status ?? null;
   const device = data?.device ?? null;
+
+  const errStatus =
+    typeof error === "object" && error !== null && "status" in error
+      ? (error as { status?: unknown }).status
+      : undefined;
+  // 404/410 = request gone (TTL-evicted or consumed) — terminal, not transient.
+  const gone = errStatus === 404 || errStatus === 410;
+
+  useEffect(() => {
+    if (
+      !settled &&
+      (gone || status === "CONSUMED" || status === "EXPIRED" || status === "CANCELLED")
+    ) {
+      setSettled(true);
+    }
+  }, [settled, gone, status]);
 
   const handleApprove = async () => {
     try {
@@ -89,7 +108,7 @@ export function AuthorizeDeviceForm() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          {!requestId || isError ? (
+          {!requestId || gone ? (
             <>
               <p className="text-sm text-destructive">Invalid or expired request.</p>
               <Button appearance="outline" onClick={() => router.push(paths.dashboard.root)}>
@@ -97,8 +116,13 @@ export function AuthorizeDeviceForm() {
               </Button>
             </>
           ) : isLoading || !data ? (
-            <div className="flex items-center justify-center py-6">
+            <div className="flex flex-col items-center gap-3 py-6">
               <Spinner className="size-6" />
+              {isError && (
+                <p className="text-sm text-muted-foreground">
+                  Connection lost — retrying…
+                </p>
+              )}
             </div>
           ) : approved || status === "AUTHORIZED" ? (
             <>

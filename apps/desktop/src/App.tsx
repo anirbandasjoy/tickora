@@ -25,7 +25,14 @@ function AuthGate() {
     },
     onError: setFlowError,
   });
-  const { completeLogin } = flow;
+  const { completeLogin, resetFlow } = flow;
+
+  // Clear stale request state once authorized so a later sign-out lands
+  // on the clean initial screen instead of "Waiting for browser approval…".
+  // resetFlow is idempotent; React bails out when state is unchanged.
+  useEffect(() => {
+    if (status === "authorized") resetFlow();
+  }, [status, resetFlow]);
 
   // Guard: only run once — even if HMR re-triggers the effect.
   const startupRan = useRef(false);
@@ -125,7 +132,11 @@ function AuthGate() {
     }
     // signOut() calls clearSession() internally.
     await signOut();
-  }, [logoutRemote, signOut]);
+    // Drop stale device-flow state so the login screen resets fully.
+    resetFlow();
+    setWelcomed(false);
+    setFlowError(null);
+  }, [logoutRemote, signOut, resetFlow, setFlowError]);
 
   // ── Loading ──────────────────────────────────────────────────────────────
   if (status === "loading") {

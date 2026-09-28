@@ -9,11 +9,11 @@ const main = async () => {
   await connectDB(config.MONGO_URI);
   const indexes = await ensureDatabaseIndexes();
   console.log(`Database indexes ensured: ${indexes.length} collections`);
-  // Self-describing boot marker: proves whether THIS process serves the
-  // code-optional exchange (fix) or the stale code-required version.
+  // Self-describing boot marker: proves whether THIS process enforces the
+  // code-required exchange (spec §8/§17) or the legacy code-optional version.
   // Derived live from the schema, so it can never rot.
   const codeOptional = exchangeCodeSchema.shape.code?.isOptional() ?? false;
-  console.log(`Auth exchange mode: code ${codeOptional ? 'optional (fixed)' : 'REQUIRED (stale!)'}`);
+  console.log(`Auth exchange mode: code ${codeOptional ? 'OPTIONAL (legacy!)' : 'REQUIRED (enforced)'}`);
   const auth = await initAuth();
   const app = createApp(auth);
   const server = http.createServer(app);
