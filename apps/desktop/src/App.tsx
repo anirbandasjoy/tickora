@@ -166,6 +166,10 @@ function AuthGate() {
           setFlowError(null);
           void flow.startLogin();
         }}
+        onCancel={() => {
+          setFlowError(null);
+          void flow.cancelLogin();
+        }}
       />
     );
   }

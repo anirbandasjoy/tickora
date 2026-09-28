@@ -15,6 +15,7 @@ interface AuthorizeScreenProps {
   pollingError: boolean;
   error: string | null;
   onStart: () => void;
+  onCancel: () => void;
 }
 
 export function AuthorizeScreen({
@@ -24,6 +25,7 @@ export function AuthorizeScreen({
   pollingError,
   error,
   onStart,
+  onCancel,
 }: AuthorizeScreenProps) {
   return (
     <main className="flex min-h-screen items-center justify-center p-6">
@@ -52,6 +54,9 @@ export function AuthorizeScreen({
               </p>
               <Button appearance="outline" onClick={onStart}>
                 Reopen browser
+              </Button>
+              <Button appearance="outline" onClick={onCancel}>
+                Cancel
               </Button>
               {pollingError && (
                 <p className="text-sm text-destructive">

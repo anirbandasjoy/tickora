@@ -1,5 +1,16 @@
+import { useState } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@repo/ui/components/core/avatar";
 import { Button } from "@repo/ui/components/core/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@repo/ui/components/core/alert-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/components/core/card";
 import { Spinner } from "@repo/ui/components/core/spinner";
 import { hooks } from "../../lib/store";
@@ -14,6 +25,7 @@ export function ShellScreen({ session, onSignOut }: ShellScreenProps) {
   const { data, isLoading, isError, refetch } = hooks.useDesktopMeQuery(undefined, {
     skip: !session.refreshToken,
   });
+  const [confirmOpen, setConfirmOpen] = useState(false);
   
   const user = data?.user ?? null;
   const initials = (user?.name ?? "T").split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
@@ -55,9 +67,36 @@ export function ShellScreen({ session, onSignOut }: ShellScreenProps) {
               </div>
             </>
           )}
-          <Button appearance="outline" className="w-full" onClick={onSignOut}>
-            Sign out
-          </Button>
+          <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <Button
+              appearance="outline"
+              className="w-full"
+              onClick={() => setConfirmOpen(true)}
+            >
+              Sign out
+            </Button>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Sign out of Tickora?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This device ({session.deviceName}) will be signed out and its
+                  session revoked. To sign back in you will need to approve
+                  again in the browser.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    setConfirmOpen(false);
+                    onSignOut();
+                  }}
+                >
+                  Sign out
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
       </Card>
     </main>

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { hooks } from "../../lib/store";
 import {
@@ -38,6 +38,37 @@ export function useDeviceFlow({ onAuthorized, onError }: DeviceFlowCallbacks) {
     { skip: !requestId || finished, pollingInterval: 2000 },
   );
 
+  // Terminal failure: the browser never approved (expired / denied /
+  // TTL-evicted). Stop polling and reset so the UI shows the error
+  // instead of spinning forever.
+  const failTerminal = useCallback(
+    (message: string) => {
+      setFinished(true);
+      setRequestId(null);
+      setAuthorizeUrl(null);
+      onError(message);
+    },
+    [onError],
+  );
+
+  useEffect(() => {
+    if (finished || !requestId) return;
+    const s = statusQuery.data?.status;
+    if (s === "EXPIRED") failTerminal("The sign-in request expired. Please start again.");
+    else if (s === "CANCELLED")
+      failTerminal("The sign-in request was denied. Please start again.");
+    else if (s === "CONSUMED")
+      failTerminal("This sign-in was already completed. Please start again.");
+  }, [finished, requestId, statusQuery.data?.status, failTerminal]);
+
+  // 404 = the request document is gone (TTL-evicted after expiry).
+  // That's terminal, not a transient connection blip.
+  useEffect(() => {
+    if (finished || !requestId || !statusQuery.isError) return;
+    const err = statusQuery.error as { status?: number } | undefined;
+    if (err?.status === 404) failTerminal("The sign-in request expired. Please start again.");
+  }, [finished, requestId, statusQuery.isError, statusQuery.error, failTerminal]);
+
   const startLogin = useCallback(async () => {
     try {
       const deviceIdentifier = getOrCreateDeviceId();
@@ -69,13 +100,37 @@ export function useDeviceFlow({ onAuthorized, onError }: DeviceFlowCallbacks) {
   // It must NOT auto-exchange into a session — the one-time code
   // via tickora://auth/callback is required. Deep-link listener calls completeLogin.
 
+  const cancelLogin = useCallback(async () => {
+    if (requestId) {
+      try {
+        await cancelAuthRequest({
+          requestId,
+          deviceIdentifier: getOrCreateDeviceId(),
+        }).unwrap();
+      } catch {
+        // Best effort: expired/consumed requests need no cancel.
+      }
+    }
+    setFinished(true);
+    setRequestId(null);
+    setAuthorizeUrl(null);
+  }, [requestId, cancelAuthRequest]);
+
+  const statusErr = statusQuery.error as { status?: number } | undefined;
   return {
     requestId,
     authorizeUrl,
     remoteStatus: finished ? null : (statusQuery.data?.status ?? null),
-    pollingError: Boolean(requestId) && !finished && statusQuery.isError,
+    // 404 means the request is gone (expired) — surfaced as a terminal
+    // error above, not a retryable connection loss.
+    pollingError:
+      Boolean(requestId) &&
+      !finished &&
+      statusQuery.isError &&
+      statusErr?.status !== 404,
     exchanging,
     startLogin,
+    cancelLogin,
     completeLogin,
   };
 }
