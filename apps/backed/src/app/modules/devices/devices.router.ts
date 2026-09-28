@@ -31,6 +31,13 @@ export function devicesRouter(auth: Auth) {
       middlewares: [resolveUser, validateRequest({ params: objectIdParam })],
       handler: catchAsync(controller.revoke),
     },
+    // Spec §15/§16 alias: POST /api/v1/desktop/devices/:deviceId/revoke
+    {
+      method: 'post',
+      path: '/:id/revoke',
+      middlewares: [resolveUser, validateRequest({ params: objectIdParam })],
+      handler: catchAsync(controller.revoke),
+    },
   ]);
 
   return router;

@@ -16,7 +16,13 @@ export function LoginView() {
   const { data: session, isPending } = useSession();
 
   useEffect(() => {
-    if (!isPending && session) router.push(paths.dashboard.root);
+    if (isPending || !session) return;
+    const next = new URLSearchParams(window.location.search).get("next");
+    const safeNext =
+      next && (next.startsWith("/authorize-device") || next.startsWith("/dashboard"))
+        ? next
+        : paths.dashboard.root;
+    router.push(safeNext as typeof paths.dashboard.root);
   }, [session, isPending, router]);
 
   if (isPending || session) {
@@ -27,6 +33,17 @@ export function LoginView() {
     );
   }
 
+  // Preserve ?next=/authorize-device?requestId=... across auth links.
+  const nextParam =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("next")
+      : null;
+  const nextSuffix =
+    nextParam &&
+    (nextParam.startsWith("/authorize-device") || nextParam.startsWith("/dashboard"))
+      ? `?next=${encodeURIComponent(nextParam)}`
+      : "";
+
   return (
     <AuthCard title="Welcome back" description="Sign in to your account">
       <div className="space-y-4">
@@ -35,14 +52,14 @@ export function LoginView() {
         <GoogleSigninButton />
         <p className="text-center text-sm text-muted-foreground">
           <Link
-            href={paths.auth.forgotPassword}
+            href={`${paths.auth.forgotPassword}${nextSuffix}`}
             className="underline-offset-4 hover:underline"
           >
             Forgot password?
           </Link>{" "}
           ·{" "}
           <Link
-            href={paths.auth.signup}
+            href={`${paths.auth.signup}${nextSuffix}`}
             className="underline-offset-4 hover:underline"
           >
             Create account

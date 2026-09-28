@@ -32,7 +32,7 @@ export async function approveRequest(userId: string, requestId: string) {
   return {
     requestId: doc.requestId,
     code,
-    deepLink: `tickora://auth?code=${code}&requestId=${doc.requestId}`,
+    deepLink: `tickora://auth/callback?code=${code}&requestId=${doc.requestId}`,
   };
 }
 
@@ -40,11 +40,24 @@ export async function getRequestStatus(requestId: string) {
   const doc = await findAuthRequest(requestId);
   if (!doc) return null;
   const expired = doc.expiresAt.getTime() < Date.now();
-  return { status: expired ? 'EXPIRED' : doc.status, expiresAt: doc.expiresAt };
+  return {
+    status: expired ? "EXPIRED" : doc.status,
+    expiresAt: doc.expiresAt,
+    // Device details for the approval UI (spec §5/§7). No credential here.
+    device: {
+      name: doc.deviceName ?? `${doc.platform} Desktop`,
+      platform: doc.platform,
+      architecture: doc.architecture ?? "unknown",
+      appVersion: doc.appVersion,
+    },
+  };
 }
 
-export async function cancelRequest(requestId: string) {
-  await cancelAuthRequest(requestId);
+export async function cancelRequest(
+  requestId: string,
+  opts: { userId?: string; deviceIdentifier?: string } = {},
+) {
+  await cancelAuthRequest(requestId, opts.userId, opts.deviceIdentifier);
   return { cancelled: true };
 }
 

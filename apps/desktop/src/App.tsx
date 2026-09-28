@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { hooks } from "./lib/store";
 import { loadSession, saveSession } from "./lib/session-store";
 import { AuthProvider, useAuth } from "./features/auth/auth-context";
@@ -27,32 +27,33 @@ function AuthGate() {
   });
   const { completeLogin } = flow;
 
-  const [refreshSession] = hooks.useRefreshDesktopSessionMutation();
+  // Guard: only run once — even if HMR re-triggers the effect.
+  const startupRan = useRef(false);
 
   useEffect(() => {
-    loadSession().then(async (stored) => {
-      if (!stored) {
+    if (startupRan.current) return;
+    startupRan.current = true;
+
+    // Safety timeout: fall back to login screen if loading hangs.
+    const timeout = setTimeout(() => setUnauthorized(), 8000);
+
+    loadSession()
+      .then((stored) => {
+        clearTimeout(timeout);
+        if (stored) {
+          setAuthorized(stored);
+        } else {
+          setUnauthorized();
+        }
+      })
+      .catch(() => {
+        clearTimeout(timeout);
         setUnauthorized();
-        return;
-      }
-      // Try to refresh the token to extend session on startup
-      try {
-        const result = await refreshSession({ refreshToken: stored.refreshToken }).unwrap();
-        const updated = {
-          ...stored,
-          refreshToken: result.refreshToken,
-          expiresAt: result.expiresAt,
-        };
-        await saveSession(updated);
-        setAuthorized(updated);
-      } catch {
-        // If refresh fails, try the existing token — it might still be valid
-        setAuthorized(stored);
-      }
-    });
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Listen for deep-link auth callbacks from the browser.
   useEffect(() => {
     let unlisten: (() => void) | undefined;
     listenForAuthLinks(({ code, requestId }) => {
@@ -63,10 +64,56 @@ function AuthGate() {
     return () => unlisten?.();
   }, [completeLogin]);
 
+  // Refresh stored session token in the background after login is confirmed,
+  // then proactively rotate before expiry (spec §11/§13).
+  // Done AFTER setAuthorized so the UI renders first, then the token rotates.
+  const [refreshSession] = hooks.useRefreshDesktopSessionMutation();
+  useEffect(() => {
+    if (status !== "authorized" || !session) return;
+    let cancelled = false;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+
+    const doRefresh = async (token: string) => {
+      try {
+        const result = await refreshSession({ refreshToken: token }).unwrap();
+        if (cancelled) return;
+        const updated = {
+          ...session,
+          refreshToken: result.refreshToken,
+          expiresAt: result.expiresAt,
+        };
+        await saveSession(updated);
+        setAuthorized(updated);
+        schedule(updated.expiresAt, updated.refreshToken);
+      } catch {
+        // Refresh failed — keep using the existing token.
+        // requireDesktopAuth will return 401 when it truly expires.
+        // Retry in 1h in case of transient network failure.
+        if (!cancelled) timeout = setTimeout(() => void doRefresh(token), 60 * 60 * 1000);
+      }
+    };
+
+    const schedule = (expiresAt: string, token: string) => {
+      const msLeft = new Date(expiresAt).getTime() - Date.now();
+      // Refresh 7 days before expiry, or in 24h if already close. Clamp >=60s.
+      const delay = Math.max(60 * 1000, msLeft - 7 * 24 * 60 * 60 * 1000);
+      // Cap setTimeout delay to 24h and re-schedule (browsers/Tauri clamp long delays).
+      const capped = Math.min(delay, 24 * 60 * 60 * 1000);
+      timeout = setTimeout(() => void doRefresh(token), capped);
+    };
+
+    schedule(session.expiresAt, session.refreshToken);
+    return () => {
+      cancelled = true;
+      if (timeout) clearTimeout(timeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, session?.deviceId]);
+
+  // Only sign out on an explicit 401 from session list — not transient errors.
   useEffect(() => {
     if (!validateSessions.isError) return;
     const err = validateSessions.error as { status?: number } | undefined;
-    // Only sign out on explicit 401 Unauthorized, not transient network errors
     if (err?.status === 401) void signOut();
   }, [validateSessions.isError, validateSessions.error, signOut]);
 
@@ -76,12 +123,37 @@ function AuthGate() {
     } catch {
       // Token already dead server-side; still clear locally.
     }
-    // signOut() already calls clearSession() internally
+    // signOut() calls clearSession() internally.
     await signOut();
   }, [logoutRemote, signOut]);
 
-  if (status === "loading") return null;
+  // ── Loading ──────────────────────────────────────────────────────────────
+  if (status === "loading") {
+    return (
+      <main
+        style={{
+          display: "flex",
+          minHeight: "100vh",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            border: "3px solid #e5e7eb",
+            borderTopColor: "#6366f1",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </main>
+    );
+  }
 
+  // ── Unauthorized ─────────────────────────────────────────────────────────
   if (status === "unauthorized" || !session) {
     return (
       <AuthorizeScreen
@@ -98,6 +170,7 @@ function AuthGate() {
     );
   }
 
+  // ── Post-login welcome ───────────────────────────────────────────────────
   if (welcomed) {
     return (
       <WelcomeScreen
@@ -107,6 +180,7 @@ function AuthGate() {
     );
   }
 
+  // ── Authenticated shell ───────────────────────────────────────────────────
   return (
     <ShellScreen session={session} onSignOut={() => void handleSignOut()} />
   );

@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { defineRoutes } from '@/utils/defineRoutes';
 import catchAsync from '@/utils/catchAsync';
 import {
+  authorizeDesktopAuthSchema,
+  cancelDesktopAuthSchema,
   exchangeCodeSchema,
   objectIdParam,
   refreshSessionSchema,
@@ -12,7 +14,7 @@ import {
 import { validateRequest } from '../../middlewares/validateRequest';
 import { createRequireAuth } from '../../middlewares/requireAuth';
 import { requireDesktopAuth } from '../../middlewares/requireDesktopAuth';
-import { loginLimiter } from '@/utils/loginLimiter';
+import { loginLimiter, desktopApproveLimiter, desktopRequestLimiter, desktopStatusLimiter } from '@/utils/loginLimiter';
 import * as controller from './desktop-auth.controller';
 import * as sessionController from './session.controller';
 import type { Auth } from '../../../lib/auth';
@@ -25,7 +27,7 @@ export function desktopAuthRouter(auth: Auth) {
     {
       method: 'post',
       path: '/request',
-      middlewares: [validateRequest({ body: requestDesktopAuthSchema })],
+      middlewares: [desktopRequestLimiter, validateRequest({ body: requestDesktopAuthSchema })],
       handler: catchAsync(controller.request),
     },
     {
@@ -37,7 +39,7 @@ export function desktopAuthRouter(auth: Auth) {
     {
       method: 'get',
       path: '/status',
-      middlewares: [validateRequest({ query: requestIdQuery })],
+      middlewares: [desktopStatusLimiter, validateRequest({ query: requestIdQuery })],
       handler: catchAsync(controller.status),
     },
     {
@@ -58,9 +60,23 @@ export function desktopAuthRouter(auth: Auth) {
       middlewares: [loginLimiter, validateRequest({ body: refreshSessionSchema })],
       handler: catchAsync(sessionController.refresh),
     },
+    // Spec §16 alias: POST /api/v1/desktop/auth/refresh
+    {
+      method: 'post',
+      path: '/refresh',
+      middlewares: [loginLimiter, validateRequest({ body: refreshSessionSchema })],
+      handler: catchAsync(sessionController.refresh),
+    },
     {
       method: 'post',
       path: '/sessions/logout',
+      middlewares: [requireDesktopAuth],
+      handler: catchAsync(sessionController.logout),
+    },
+    // Spec §16 alias: POST /api/v1/desktop/auth/logout
+    {
+      method: 'post',
+      path: '/logout',
       middlewares: [requireDesktopAuth],
       handler: catchAsync(sessionController.logout),
     },
@@ -79,13 +95,23 @@ export function desktopAuthRouter(auth: Auth) {
     {
       method: 'post',
       path: '/:requestId/approve',
-      middlewares: [requireAuth, validateRequest({ params: requestIdParam })],
+      middlewares: [desktopApproveLimiter, requireAuth, validateRequest({ params: requestIdParam })],
+      handler: catchAsync(controller.approve),
+    },
+    // Spec §16 alias: POST /api/v1/desktop/auth/authorize { requestId }
+    {
+      method: 'post',
+      path: '/authorize',
+      middlewares: [desktopApproveLimiter, requireAuth, validateRequest({ body: authorizeDesktopAuthSchema })],
       handler: catchAsync(controller.approve),
     },
     {
       method: 'post',
       path: '/:requestId/cancel',
-      middlewares: [validateRequest({ params: requestIdParam })],
+      middlewares: [
+        desktopRequestLimiter,
+        validateRequest({ params: requestIdParam, body: cancelDesktopAuthSchema }),
+      ],
       handler: catchAsync(controller.cancel),
     },
   ]);

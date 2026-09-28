@@ -18,18 +18,21 @@ type ExchangeResult =
   | { ok: false; code: number; message: string };
 
 export async function exchangeCode(
-  input: { requestId: string; code?: string },
+  input: { requestId: string; code: string; deviceIdentifier: string },
   ctx: { ip: string | null; userAgent: string | null }
 ): Promise<ExchangeResult> {
-  const { requestId, code } = input;
+  const { requestId, code, deviceIdentifier } = input;
 
   const stored = await findAuthRequest(requestId);
   if (!stored || stored.status !== 'AUTHORIZED' || stored.expiresAt.getTime() < Date.now()) {
     return { ok: false, code: 410, message: 'Code expired or invalid' };
   }
-  // Deep-link path: verify the one-time code. Polling path (no code):
-  // AUTHORIZED status + 192-bit requestId secrecy + atomic consume below.
-  if (code !== undefined && !verifyCode(stored.codeHash, code)) {
+  // Spec §8/§10: one-time code must be device-bound and user-bound.
+  // Never accept userId from the client; it comes from the AUTHORIZED record.
+  if (stored.deviceIdentifier !== deviceIdentifier) {
+    return { ok: false, code: 401, message: 'Device mismatch' };
+  }
+  if (!verifyCode(stored.codeHash, code)) {
     return { ok: false, code: 401, message: 'Invalid code' };
   }
   const consumed = await consumeAuthRequest(requestId);
@@ -43,11 +46,11 @@ export async function exchangeCode(
       userId,
       {
         deviceIdentifier: consumed.deviceIdentifier,
-        name: `${consumed.platform} Desktop`,
+        name: consumed.deviceName ?? `${consumed.platform} Desktop`,
         platform: consumed.platform,
-        architecture: 'unknown',
-        hostname: null,
-        osVersion: null,
+        architecture: consumed.architecture ?? 'unknown',
+        hostname: consumed.hostname ?? null,
+        osVersion: consumed.osVersion ?? null,
         appVersion: consumed.appVersion,
       },
       session

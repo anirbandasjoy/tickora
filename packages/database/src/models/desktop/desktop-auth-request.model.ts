@@ -6,7 +6,11 @@ export interface DesktopAuthRequest {
   requestId: string;
   deviceIdentifier: string;
   deviceId: Types.ObjectId | null;
+  deviceName: string | null;
   platform: DesktopPlatform;
+  architecture: string | null;
+  hostname: string | null;
+  osVersion: string | null;
   appVersion: string;
   userId: string | null;
   codeHash: string | null;
@@ -25,11 +29,15 @@ const desktopAuthRequestMongooseSchema = new Schema<DesktopAuthRequest>(
       default: null,
       ref: "DesktopDevice",
     },
+    deviceName: { type: String, default: null, maxlength: 100 },
     platform: {
       type: String,
       required: true,
       enum: ["WINDOWS", "MACOS", "LINUX"],
     },
+    architecture: { type: String, default: null, maxlength: 32 },
+    hostname: { type: String, default: null, maxlength: 255 },
+    osVersion: { type: String, default: null, maxlength: 64 },
     appVersion: { type: String, required: true },
     userId: { type: String, default: null },
     codeHash: { type: String, default: null },

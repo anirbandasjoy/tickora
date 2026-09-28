@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
     // Legacy authorize URL (backend issued this path before the fix).
     // Query string (?requestId=) is preserved automatically.
     return [
-      { source: "/desktop/authorize", destination: "/dashboard/authorize-device", permanent: true },
+      { source: "/desktop/authorize", destination: "/authorize-device", permanent: false },
     ];
   },
 };

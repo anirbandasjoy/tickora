@@ -16,6 +16,12 @@ export interface AuthRequestInfo {
 export interface AuthRequestState {
   status: AuthRequestStatus;
   expiresAt: string;
+  device?: {
+    name: string;
+    platform: string;
+    architecture: string;
+    appVersion: string;
+  };
 }
 
 export interface DeviceApproval {
@@ -58,10 +64,14 @@ export function injectDesktopAuthApi(baseApi: BaseApi) {
         transformResponse: (res: { data: DeviceApproval }) => res.data,
         invalidatesTags: ["DesktopAuth"],
       }),
-      cancelDesktopAuth: build.mutation<{ cancelled: boolean }, { requestId: string }>({
-        query: ({ requestId }) => ({
+      cancelDesktopAuth: build.mutation<
+        { cancelled: boolean },
+        { requestId: string; deviceIdentifier?: string }
+      >({
+        query: ({ requestId, deviceIdentifier }) => ({
           url: `v1/desktop/auth/${requestId}/cancel`,
           method: "POST",
+          body: deviceIdentifier ? { deviceIdentifier } : {},
         }),
         transformResponse: (res: { data: { cancelled: boolean } }) => res.data,
       }),

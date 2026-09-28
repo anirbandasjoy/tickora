@@ -20,7 +20,13 @@ export function SignupView() {
   const [resent, setResent] = useState(false);
 
   useEffect(() => {
-    if (!isPending && session) router.push(paths.dashboard.root);
+    if (isPending || !session) return;
+    const next = new URLSearchParams(window.location.search).get("next");
+    const safeNext =
+      next && (next.startsWith("/authorize-device") || next.startsWith("/dashboard"))
+        ? next
+        : paths.dashboard.root;
+    router.push(safeNext as typeof paths.dashboard.root);
   }, [session, isPending, router]);
 
   if (isPending || session) {
@@ -32,6 +38,12 @@ export function SignupView() {
   }
 
   if (sentTo) {
+    const nextParam = new URLSearchParams(window.location.search).get("next");
+    const safeNext =
+      nextParam &&
+      (nextParam.startsWith("/authorize-device") || nextParam.startsWith("/dashboard"))
+        ? nextParam
+        : paths.dashboard.root;
     return (
       <AuthCard title="Check your email" description={`We sent a verification link to ${sentTo}`}>
         <div className="space-y-4">
@@ -49,7 +61,7 @@ export function SignupView() {
               setResent(false);
               await authClient.sendVerificationEmail({
                 email: sentTo,
-                callbackURL: paths.dashboard.root,
+                callbackURL: safeNext,
               });
               setResending(false);
               setResent(true);

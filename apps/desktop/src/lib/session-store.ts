@@ -7,6 +7,13 @@ export interface StoredSession {
   expiresAt: string;
 }
 
+// Spec §9 wants OS secure storage (Credential Manager / Keychain / Secret Service).
+// Current: tauri-plugin-store (tickora-auth.json, plaintext) + in-memory access token.
+// Follow-up: migrate refreshToken to tauri-plugin-keyring / Stronghold without
+// changing this module's API (save/load/clear + getMemoryToken).
+// Access token hygiene is preserved: only refreshToken persists; it is sent as
+// Bearer and rotated server-side (spec §11).
+
 const STORE_PATH = "tickora-auth.json";
 const SESSION_KEY = "session";
 

@@ -11,22 +11,24 @@ export interface UserProfile {
  * Find a user by their ID from the Better Auth user collection.
  *
  * Better Auth with the MongoDB adapter stores `_id` as a plain string
- * (not an ObjectId), so we query with the raw string value.
- *
- * Uses `mongoose.connection.db` but guards against it being undefined
- * (e.g. during startup or reconnection) by throwing a clear error.
+ * (not a BSON ObjectId), so we query with the raw string value.
+ * This function accesses the `user` collection managed by Better Auth
+ * directly via the raw Mongoose connection.
  */
-export async function findUserById(userId: string): Promise<UserProfile | null> {
+export async function findUserById(
+  userId: string,
+): Promise<UserProfile | null> {
   const db = mongoose.connection.db;
   if (!db) {
     throw new Error(
       'findUserById: mongoose.connection.db is not available. ' +
-      'Ensure the database connection is established before calling this function.',
+        'Ensure the database connection is established before calling this.',
     );
   }
 
-  // Better Auth stores _id as a plain string, not ObjectId.
-  const user = await db.collection('user').findOne({ _id: userId as unknown as mongoose.mongo.BSON.ObjectId });
+  // Better Auth stores _id as a plain string — do NOT wrap in ObjectId.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const user = await db.collection('user').findOne({ _id: userId as any });
   if (!user) return null;
 
   return {

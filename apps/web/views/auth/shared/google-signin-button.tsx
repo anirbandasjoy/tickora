@@ -11,8 +11,14 @@ export function GoogleSigninButton() {
   const [pending, setPending] = useState(false);
 
   const handleClick = async () => {
+    const nextParam = new URLSearchParams(window.location.search).get("next");
+    const safeNext =
+      nextParam &&
+      (nextParam.startsWith("/authorize-device") || nextParam.startsWith("/dashboard"))
+        ? nextParam
+        : paths.dashboard.root;
     const { error } = await authClient.signIn.social(
-      { provider: "google", callbackURL: paths.dashboard.root },
+      { provider: "google", callbackURL: safeNext },
       {
         onRequest: () => setPending(true),
         onError: (ctx) => {

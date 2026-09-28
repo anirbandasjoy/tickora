@@ -27,10 +27,16 @@ export function LoginForm() {
   const onSubmit = async (values: LoginFormValues) => {
     setUnverifiedEmail(null);
     setResent(false);
+    const nextParam = new URLSearchParams(window.location.search).get("next");
+    const safeNext =
+      nextParam &&
+      (nextParam.startsWith("/authorize-device") || nextParam.startsWith("/dashboard"))
+        ? nextParam
+        : paths.dashboard.root;
     const { error } = await authClient.signIn.email(
       { email: values.email, password: values.password },
       {
-        onSuccess: () => router.push(paths.dashboard.root),
+        onSuccess: () => router.push(safeNext as typeof paths.dashboard.root),
         onError: (ctx) => {
           if (ctx.error.status === 403) {
             setUnverifiedEmail(values.email);

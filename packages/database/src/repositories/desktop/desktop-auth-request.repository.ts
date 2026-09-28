@@ -15,7 +15,11 @@ export async function createAuthRequest(
   const doc = new DesktopAuthRequestModel({
     requestId,
     deviceIdentifier: input.deviceIdentifier,
+    deviceName: input.deviceName ?? null,
     platform: input.platform,
+    architecture: input.architecture ?? null,
+    hostname: input.hostname ?? null,
+    osVersion: input.osVersion ?? null,
     appVersion: input.appVersion,
     status: "PENDING",
     expiresAt: new Date(Date.now() + REQUEST_TTL_MS),
@@ -57,11 +61,15 @@ export async function consumeAuthRequest(
 export async function cancelAuthRequest(
   requestId: string,
   userId?: string,
+  deviceIdentifier?: string,
 ): Promise<void> {
-  await DesktopAuthRequestModel.updateOne(
-    { requestId, status: "PENDING", ...(userId ? { userId } : {}) },
-    { status: "CANCELLED" },
-  );
+  // Ownership: PENDING requests have userId=null, so the desktop proves
+  // ownership via its deviceIdentifier. Web cancel proves via userId
+  // once AUTHORIZED. Require at least one binding when supplied.
+  const filter: Record<string, unknown> = { requestId, status: "PENDING" };
+  if (userId) filter.userId = userId;
+  if (deviceIdentifier) filter.deviceIdentifier = deviceIdentifier;
+  await DesktopAuthRequestModel.updateOne(filter, { status: "CANCELLED" });
 }
 
 export async function listPendingForUser(

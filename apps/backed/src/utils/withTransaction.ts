@@ -12,6 +12,21 @@ export async function withTransaction<T>(
       result = await fn(session);
     });
     return result;
+  } catch (err) {
+    // Standalone MongoDB (no replica set) throws on transactions.
+    // Fall back to non-transactional execution so desktop auth still works in dev.
+    const message = err instanceof Error ? err.message : String(err);
+    if (
+      message.includes('Transaction numbers') ||
+      message.includes('replica set') ||
+      message.includes('transactions are not supported') ||
+      message.includes('Transaction') ||
+      (err as any)?.code === 20 ||
+      (err as any)?.codeName === 'IllegalOperation'
+    ) {
+      return fn(undefined);
+    }
+    throw err;
   } finally {
     await session.endSession();
   }

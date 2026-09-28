@@ -15,9 +15,15 @@ export default function proxy(request: NextRequest) {
   // Optimistic built-in check (presence only — real validation happens
   // per page/route against the backend).
   const hasSession = Boolean(getSessionCookie(request));
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
 
   if (hasSession && (PUBLIC_ROUTES as readonly string[]).includes(pathname)) {
+    // Preserve desktop approval flow: if a logged-in user lands on login/signup
+    // with ?next=/authorize-device?requestId=..., honor it.
+    const next = request.nextUrl.searchParams.get("next");
+    if (next && next.startsWith("/authorize-device")) {
+      return NextResponse.redirect(new URL(next, request.url));
+    }
     return NextResponse.redirect(new URL(paths.dashboard.root, request.url));
   }
 
@@ -26,7 +32,11 @@ export default function proxy(request: NextRequest) {
   }
 
   if (!hasSession && pathname === paths.dashboard.authorizeDevice) {
-    return NextResponse.redirect(new URL(paths.auth.login, request.url));
+    // Preserve the full authorize URL (including ?requestId=) across login.
+    const next = `${pathname}${search}`;
+    const loginUrl = new URL(paths.auth.login, request.url);
+    loginUrl.searchParams.set("next", next);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();

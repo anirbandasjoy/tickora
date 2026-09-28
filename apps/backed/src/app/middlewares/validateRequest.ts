@@ -12,7 +12,7 @@ interface ValidateSources {
 export function validateRequest(sources: ValidateSources) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (sources.body) req.body = sources.body.parse(req.body);
+      if (sources.body) req.body = sources.body.parse(req.body ?? {});
       if (sources.query) {
         const parsed = sources.query.parse(req.query);
         Object.assign(req.query, parsed);

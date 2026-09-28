@@ -1,7 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { hooks } from "../../lib/store";
-import { detectPlatform, getAppVersion, getOrCreateDeviceId } from "../../lib/device-info";
+import {
+  detectArchitecture,
+  detectPlatform,
+  getAppVersion,
+  getDeviceName,
+  getOrCreateDeviceId,
+} from "../../lib/device-info";
 import { useCompleteLogin } from "./use-complete-login";
 import type { StoredSession } from "../../lib/session-store";
 
@@ -23,8 +29,7 @@ export function useDeviceFlow({ onAuthorized, onError }: DeviceFlowCallbacks) {
     onDone: markFinished,
   });
   const completeLogin = useCallback(
-    (code: string | null, rid: string, tick: unknown = code) =>
-      void runComplete(code, rid, tick),
+    (code: string, rid: string, tick: unknown = code) => void runComplete(code, rid, tick),
     [runComplete],
   );
 
@@ -35,16 +40,19 @@ export function useDeviceFlow({ onAuthorized, onError }: DeviceFlowCallbacks) {
 
   const startLogin = useCallback(async () => {
     try {
+      const deviceIdentifier = getOrCreateDeviceId();
       if (requestId) {
         try {
-          await cancelAuthRequest({ requestId }).unwrap();
+          await cancelAuthRequest({ requestId, deviceIdentifier }).unwrap();
         } catch {
           // Best effort: expired/consumed requests need no cancel.
         }
       }
       const result = await requestAuth({
-        deviceIdentifier: getOrCreateDeviceId(),
+        deviceIdentifier,
+        deviceName: getDeviceName(),
         platform: detectPlatform(),
+        architecture: detectArchitecture(),
         appVersion: await getAppVersion(),
       }).unwrap();
       resetLogin();
@@ -57,11 +65,9 @@ export function useDeviceFlow({ onAuthorized, onError }: DeviceFlowCallbacks) {
     }
   }, [requestAuth, cancelAuthRequest, requestId, onError, resetLogin]);
 
-  useEffect(() => {
-    if (finished || exchanging || !requestId) return;
-    if (statusQuery.data?.status !== "AUTHORIZED") return;
-    void completeLogin(null, requestId, statusQuery.fulfilledTimeStamp);
-  }, [finished, exchanging, requestId, statusQuery.data?.status, statusQuery.fulfilledTimeStamp, completeLogin]);
+  // Spec §17: polling only surfaces status for UI (remoteStatus).
+  // It must NOT auto-exchange into a session — the one-time code
+  // via tickora://auth/callback is required. Deep-link listener calls completeLogin.
 
   return {
     requestId,

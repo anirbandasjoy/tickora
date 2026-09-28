@@ -15,7 +15,9 @@ export async function pending(req: Request, res: Response) {
 }
 
 export async function approve(req: Request, res: Response) {
-  const data = await service.approveRequest(userIdOf(req), String(req.params.requestId));
+  // Supports both spec alias (body { requestId }) and legacy (params :requestId).
+  const requestId = String(req.params.requestId ?? (req.body as any)?.requestId ?? '');
+  const data = await service.approveRequest(userIdOf(req), requestId);
   if (!data) {
     return sendErrorResponse(res, {
       statusCode: StatusCodes.GONE,
@@ -37,6 +39,13 @@ export async function status(req: Request, res: Response) {
 }
 
 export async function cancel(req: Request, res: Response) {
-  const data = await service.cancelRequest(String(req.params.requestId));
+  const requestId = String(req.params.requestId ?? (req.body as any)?.requestId ?? '');
+  const deviceIdentifier =
+    typeof (req.body as any)?.deviceIdentifier === 'string'
+      ? ((req.body as any).deviceIdentifier as string)
+      : undefined;
+  // Web cancel (authenticated) binds via userId; desktop cancel binds via deviceIdentifier.
+  const userId = (req as any)?.user?.id as string | undefined;
+  const data = await service.cancelRequest(requestId, { userId, deviceIdentifier });
   return sendSuccessResponse(res, { data });
 }

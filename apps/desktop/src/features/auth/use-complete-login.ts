@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { hooks } from "../../lib/store";
 import { saveSession, type StoredSession } from "../../lib/session-store";
+import { getOrCreateDeviceId } from "../../lib/device-info";
 import {
   MAX_EXCHANGE_ATTEMPTS,
   createAttemptLedger,
@@ -28,17 +29,23 @@ export function useCompleteLogin({ onAuthorized, onError, onDone }: CompleteLogi
   }, []);
 
   const completeLogin = useCallback(
-    async (code: string | null, rid: string, tick: unknown = code) => {
-      const key = `${rid}:${code ?? "poll"}`;
+    async (code: string, rid: string, tick: unknown = code) => {
+      if (!code) {
+        onError("Missing authorization code. Please approve again in the browser.");
+        return;
+      }
+      const key = `${rid}:${code}`;
       if (exchangingFor.current === rid) return;
       if (!ledger.current.shouldAttempt(key, tick)) return;
       ledger.current.recordAttempt(key, tick);
       exchangingFor.current = rid;
       setExchanging(true);
       try {
-        const result = await exchangeCode(
-          code === null ? { requestId: rid } : { requestId: rid, code },
-        ).unwrap();
+        const result = await exchangeCode({
+          requestId: rid,
+          code,
+          deviceIdentifier: getOrCreateDeviceId(),
+        }).unwrap();
         console.log('[CompleteLogin] Exchange successful:', {
           hasRefreshToken: !!result.refreshToken,
           tokenLength: result.refreshToken?.length,
