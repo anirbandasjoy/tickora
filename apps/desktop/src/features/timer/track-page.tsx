@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Play, Square } from "lucide-react";
+import { Play, Square } from "lucide-react";
 import { Button } from "@repo/ui/components/core/button";
 import { formatElapsed, formatShort } from "../../lib/timer-format";
 import type { TimerProject, TimerRun } from "./use-timer";
@@ -49,7 +49,6 @@ export function TrackPage({
   notice,
   lastTrackedSeconds,
   projectName,
-  onBack,
   onStart,
   onStop,
 }: {
@@ -62,7 +61,6 @@ export function TrackPage({
   notice: string | null;
   lastTrackedSeconds: number | null;
   projectName: (projectId: string) => string;
-  onBack: () => void;
   onStart: () => void;
   onStop: () => void;
 }) {
@@ -72,12 +70,6 @@ export function TrackPage({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <Button appearance="outline" onClick={onBack} className="h-8 gap-1 px-2 text-xs">
-          <ArrowLeft className="size-4" /> Projects
-        </Button>
-      </div>
-
       {project ? (
         <div className="flex items-center justify-center gap-2 text-sm">
           <span

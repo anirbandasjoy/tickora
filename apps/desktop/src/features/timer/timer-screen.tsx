@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { LogOut, Pin, PinOff, RotateCw } from "lucide-react";
+import { ArrowLeft, LogOut, Pin, PinOff, RotateCw } from "lucide-react";
 import { Button } from "@repo/ui/components/core/button";
 import { Spinner } from "@repo/ui/components/core/spinner";
 import {
@@ -109,7 +109,14 @@ export function TimerScreen({
   return (
     <main className="flex min-h-screen flex-col gap-3 p-4">
       <header className="flex items-center justify-between">
-        <span className="text-sm font-semibold tracking-tight">Tickora</span>
+        <div className="flex min-w-0 items-center gap-1">
+          {openId !== null && (
+            <IconButton label="Back to projects" onClick={() => setOpenId(null)}>
+              <ArrowLeft className="size-4" />
+            </IconButton>
+          )}
+          <span className="truncate text-sm font-semibold tracking-tight">Tickora</span>
+        </div>
         <div className="flex gap-1.5">
           <IconButton label={pinned ? "Unpin window" : "Pin window on top"} onClick={() => void togglePin()}>
             {pinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
@@ -152,7 +159,6 @@ export function TimerScreen({
           notice={timer.notice}
           lastTrackedSeconds={timer.lastTrackedSeconds}
           projectName={projectName}
-          onBack={() => setOpenId(null)}
           onStart={() => void timer.start()}
           onStop={() => void timer.stop()}
         />
