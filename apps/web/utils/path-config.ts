@@ -12,6 +12,7 @@ export const paths = {
   dashboard: {
     root: "/dashboard",
     settings: "/dashboard/settings",
+    projects: "/dashboard/projects",
     authorizeDevice: "/authorize-device",
   },
 } as const;

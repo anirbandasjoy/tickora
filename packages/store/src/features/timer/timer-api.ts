@@ -7,6 +7,7 @@ import type {
   WorkSessionStatus,
 } from "@repo/database";
 import type { BaseApi } from "../../base-api";
+import { unwrapList } from "../../response";
 
 export interface SyncResult {
   synced: number;
@@ -42,7 +43,8 @@ export function injectTimerApi(baseApi: BaseApi) {
       }),
       listTimers: build.query<WorkSession[], WorkSessionListQuery & { status?: WorkSessionStatus }>({
         query: (params) => ({ url: "v1/timer/", params }),
-        transformResponse: (res: { data: WorkSession[] }) => res.data,
+        transformResponse: (res: { data: WorkSession[] | { data?: WorkSession[] } }) =>
+          unwrapList(res),
         providesTags: ["Timer"],
       }),
     }),

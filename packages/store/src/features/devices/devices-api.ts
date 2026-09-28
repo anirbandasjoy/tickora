@@ -5,13 +5,15 @@ import type {
   RenameDeviceInput,
 } from "@repo/database";
 import type { BaseApi } from "../../base-api";
+import { unwrapList } from "../../response";
 
 export function injectDevicesApi(baseApi: BaseApi) {
   return baseApi.injectEndpoints({
     endpoints: (build) => ({
       listDevices: build.query<DesktopDevice[], ListQuery>({
         query: (params) => ({ url: "v1/devices/", params }),
-        transformResponse: (res: { data: DesktopDevice[] }) => res.data,
+        transformResponse: (res: { data: DesktopDevice[] | { data?: DesktopDevice[] } }) =>
+          unwrapList(res),
         providesTags: ["Device"],
       }),
       heartbeatDevice: build.mutation<{ ok: boolean }, DeviceHeartbeatInput>({

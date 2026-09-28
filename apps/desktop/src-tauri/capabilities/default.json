@@ -7,6 +7,8 @@
   ],
   "permissions": [
     "core:default",
+    "core:window:allow-is-always-on-top",
+    "core:window:allow-set-always-on-top",
     "opener:default",
     "deep-link:default",
     "store:default"

@@ -5,6 +5,7 @@ import type {
   UpdateProjectInput,
 } from "@repo/database";
 import type { BaseApi } from "../../base-api";
+import { unwrapList } from "../../response";
 
 export function injectProjectsApi(baseApi: BaseApi) {
   return baseApi.injectEndpoints({
@@ -16,7 +17,8 @@ export function injectProjectsApi(baseApi: BaseApi) {
       }),
       listProjects: build.query<Project[], ProjectListQuery>({
         query: (params) => ({ url: "v1/projects/", params }),
-        transformResponse: (res: { data: Project[] }) => res.data,
+        transformResponse: (res: { data: Project[] | { data?: Project[] } }) =>
+          unwrapList(res),
         providesTags: ["Project"],
       }),
       getProject: build.query<Project, { id: string }>({

@@ -5,7 +5,7 @@ import { AuthProvider, useAuth } from "./features/auth/auth-context";
 import { listenForAuthLinks } from "./features/auth/deep-link-listener";
 import { useDeviceFlow } from "./features/auth/use-device-flow";
 import { AuthorizeScreen } from "./features/auth/authorize-screen";
-import { ShellScreen } from "./features/shell/shell-screen";
+import { TimerScreen } from "./features/timer/timer-screen";
 import { WelcomeScreen } from "./features/shell/welcome-screen";
 
 function AuthGate() {
@@ -96,7 +96,8 @@ function AuthGate() {
         // Refresh failed — keep using the existing token.
         // requireDesktopAuth will return 401 when it truly expires.
         // Retry in 1h in case of transient network failure.
-        if (!cancelled) timeout = setTimeout(() => void doRefresh(token), 60 * 60 * 1000);
+        if (!cancelled)
+          timeout = setTimeout(() => void doRefresh(token), 60 * 60 * 1000);
       }
     };
 
@@ -195,9 +196,9 @@ function AuthGate() {
     );
   }
 
-  // ── Authenticated shell ───────────────────────────────────────────────────
+  // ── Authenticated timer ────────────────────────────────────────────────
   return (
-    <ShellScreen session={session} onSignOut={() => void handleSignOut()} />
+    <TimerScreen session={session} onSignOut={() => void handleSignOut()} />
   );
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutDashboard, Settings } from "lucide-react";
+import { FolderKanban, LayoutDashboard, Settings } from "lucide-react";
 import { usePathname } from "next/navigation";
 import {
   Sidebar,
@@ -19,6 +19,7 @@ import { paths } from "@/utils/path-config";
 
 const navItems = [
   { title: "Overview", url: paths.dashboard.root, icon: <LayoutDashboard /> },
+  { title: "Projects", url: paths.dashboard.projects, icon: <FolderKanban /> },
   { title: "Settings", url: paths.dashboard.settings, icon: <Settings /> },
 ];
 
