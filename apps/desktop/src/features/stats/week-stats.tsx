@@ -10,11 +10,13 @@ function formatDayTime(value: string | Date): string {
 
 /** Compact week + recent block for the small timer window. */
 export function WeekStats({
+  title = "This week",
   totalSeconds,
   week,
   recent,
   projectName,
 }: {
+  title?: string;
   totalSeconds: number;
   week: WeekDay[];
   recent: RecentSession[];
@@ -24,7 +26,7 @@ export function WeekStats({
   return (
     <section className="flex flex-col gap-2 rounded-md border p-3">
       <div className="flex items-baseline justify-between">
-        <span className="text-xs font-medium text-muted-foreground">This week</span>
+        <span className="text-xs font-medium text-muted-foreground">{title}</span>
         <span className="text-sm font-semibold">{formatShort(totalSeconds)}</span>
       </div>
       <div className="flex h-10 items-end gap-1">

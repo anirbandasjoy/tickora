@@ -26,8 +26,8 @@ function dayKey(d: Date): string {
 
 const POLL_MS = 30 * 1000;
 
-/** Last-7-days summary + recent sessions for the compact timer window. */
-export function useWeekStats() {
+/** Last-7-days summary + recent sessions, optionally for one project. */
+export function useWeekStats(projectId?: string) {
   const { from, to, timezone, days } = useMemo(() => {
     const now = new Date();
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -49,11 +49,11 @@ export function useWeekStats() {
   }, []);
 
   const summaryQuery = hooks.useGetReportSummaryQuery(
-    { from, to, groupBy: "date", timezone },
+    { from, to, groupBy: "date", timezone, projectId },
     { pollingInterval: POLL_MS },
   );
   const recentQuery = hooks.useListTimersQuery(
-    { page: 1, limit: 5 },
+    { page: 1, limit: 5, projectId },
     { pollingInterval: POLL_MS },
   );
 

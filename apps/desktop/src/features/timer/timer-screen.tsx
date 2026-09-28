@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { LogOut, Pin, PinOff, Play, RotateCw, Square } from "lucide-react";
+import { LogOut, Pin, PinOff, RotateCw } from "lucide-react";
 import { Button } from "@repo/ui/components/core/button";
 import { Spinner } from "@repo/ui/components/core/spinner";
 import {
@@ -13,50 +13,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@repo/ui/components/core/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/ui/components/core/select";
-import { formatElapsed, formatShort } from "../../lib/timer-format";
 import type { StoredSession } from "../../lib/session-store";
-import { useTimer, type TimerRun } from "./use-timer";
+import { useTimer } from "./use-timer";
 import { useWeekStats } from "../stats/use-week-stats";
 import { WeekStats } from "../stats/week-stats";
-
-/** Server-anchored ticker: re-anchors on every active-poll, ticks locally. */
-function useDisplayedElapsed(run: TimerRun | null): number {
-  const [now, setNow] = useState(() => Date.now());
-  const [anchor, setAnchor] = useState<{ elapsed: number; at: number } | null>(null);
-  const runKey = run ? `${run.kind}:${run.projectId}:${run.startedAt}` : null;
-  const serverElapsed = run?.kind === "server" ? run.elapsedSeconds : undefined;
-
-  useEffect(() => {
-    if (!run) {
-      setAnchor(null);
-      return;
-    }
-    const base =
-      typeof serverElapsed === "number" && serverElapsed >= 0
-        ? serverElapsed
-        : Math.max(
-            0,
-            Math.floor((Date.now() - new Date(run.startedAt).getTime()) / 1000),
-          );
-    setAnchor({ elapsed: base, at: Date.now() });
-  }, [run, runKey, serverElapsed]);
-
-  useEffect(() => {
-    if (!runKey) return;
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, [runKey]);
-
-  if (!run || !anchor) return 0;
-  return anchor.elapsed + Math.max(0, Math.floor((now - anchor.at) / 1000));
-}
+import { ProjectsList } from "./projects-list";
+import { TrackPage } from "./track-page";
 
 function IconButton({
   label,
@@ -80,6 +42,11 @@ function IconButton({
   );
 }
 
+/**
+ * Timer shell: home = all-projects list, tapping a project opens its
+ * track page with a Back button. Tracking state lives here so a run
+ * survives page switches.
+ */
 export function TimerScreen({
   session,
   onSignOut,
@@ -89,8 +56,8 @@ export function TimerScreen({
 }) {
   const timer = useTimer(session);
   const weekStats = useWeekStats();
-  const elapsed = useDisplayedElapsed(timer.run);
-  const running = timer.run !== null;
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [listNotice, setListNotice] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pinned, setPinned] = useState(false);
 
@@ -113,11 +80,31 @@ export function TimerScreen({
     }
   };
 
-  const activeProject = running
-    ? timer.projects.find((p) => p._id === timer.run?.projectId) ?? null
+  const openProject = openId ? (timer.projects.find((p) => p._id === openId) ?? null) : null;
+  const runningProject = timer.run
+    ? (timer.projects.find((p) => p._id === timer.run?.projectId) ?? null)
     : null;
+  // Server wins: if the run belongs to another project (e.g. started on
+  // web), the track page shows the running project, not the opened one.
+  const displayProject = runningProject ?? openProject;
+  const mismatchNote =
+    timer.run && openProject && timer.run.projectId !== openProject._id
+      ? `Already tracking ${runningProject?.name ?? "another project"} — stop it to track here.`
+      : null;
   const projectName = (projectId: string) =>
     timer.projects.find((p) => p._id === projectId)?.name ?? "Unknown project";
+
+  const handleOpen = (project: { _id: string }) => {
+    if (timer.run && timer.run.projectId !== project._id) {
+      const name =
+        timer.projects.find((p) => p._id === timer.run?.projectId)?.name ?? "another project";
+      setListNotice(`Stop “${name}” first to track a different project.`);
+      return;
+    }
+    setListNotice(null);
+    timer.selectProject(project._id);
+    setOpenId(project._id);
+  };
 
   return (
     <main className="flex min-h-screen flex-col gap-3 p-4">
@@ -136,106 +123,49 @@ export function TimerScreen({
         </div>
       </header>
 
-      <div
-        className={`text-center font-mono text-5xl font-semibold tabular-nums ${
-          running ? "" : "text-muted-foreground/50"
-        }`}
-      >
-        {formatElapsed(elapsed)}
-      </div>
-
-      {running && activeProject ? (
-        <div className="flex items-center justify-center gap-2 text-sm">
-          <span
-            className="size-2.5 rounded-full"
-            style={{ backgroundColor: activeProject.color ?? "#94a3b8" }}
+      {openId === null ? (
+        <>
+          <ProjectsList
+            projects={timer.projects}
+            loading={timer.projectsLoading}
+            loadError={timer.projectsError}
+            runningProjectId={timer.run?.projectId ?? null}
+            notice={listNotice}
+            onOpen={handleOpen}
+            onRetry={timer.refresh}
           />
-          <span className="max-w-full truncate font-medium">{activeProject.name}</span>
-          <span className="size-2 animate-pulse rounded-full bg-green-500" />
-        </div>
+          <WeekStats
+            totalSeconds={weekStats.totalSeconds}
+            week={weekStats.week}
+            recent={weekStats.recent}
+            projectName={projectName}
+          />
+        </>
       ) : (
-        <Select
-          value={timer.selectedId ?? ""}
-          onValueChange={timer.selectProject}
-          disabled={timer.projectsLoading || timer.projects.length === 0}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select project" />
-          </SelectTrigger>
-          <SelectContent>
-            {timer.projects.map((p) => (
-              <SelectItem key={p._id} value={p._id}>
-                {p.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <TrackPage
+          project={displayProject}
+          run={timer.run}
+          mismatchNote={mismatchNote}
+          offline={timer.offline}
+          busy={timer.busy}
+          error={timer.error}
+          notice={timer.notice}
+          lastTrackedSeconds={timer.lastTrackedSeconds}
+          projectName={projectName}
+          onBack={() => setOpenId(null)}
+          onStart={() => void timer.start()}
+          onStop={() => void timer.stop()}
+        />
       )}
-
-      {running ? (
-        <Button
-          variant="primary"
-          appearance="solid"
-          className="h-12 w-full bg-destructive text-base text-destructive-foreground hover:bg-destructive/90"
-          isLoading={timer.busy}
-          onClick={() => void timer.stop()}
-        >
-          <Square className="size-4" /> Stop
-        </Button>
-      ) : (
-        <Button
-          variant="primary"
-          appearance="solid"
-          className="h-12 w-full text-base"
-          isLoading={timer.busy || timer.projectsLoading}
-          disabled={!timer.selectedId || timer.projects.length === 0}
-          onClick={() => void timer.start()}
-        >
-          <Play className="size-4" /> Start
-        </Button>
-      )}
-
-      {timer.error && (
-        <p className="text-center text-xs text-destructive">{timer.error}</p>
-      )}
-      {!timer.error && timer.notice && (
-        <p className="text-center text-xs text-muted-foreground">{timer.notice}</p>
-      )}
-      {!timer.error && !timer.notice && timer.lastTrackedSeconds !== null && !running && (
-        <p className="text-center text-xs text-muted-foreground">
-          Tracked {formatShort(timer.lastTrackedSeconds)}
-        </p>
-      )}
-      {!timer.error && !running && timer.projects.length === 0 && !timer.projectsLoading && (
-        <p className="text-center text-xs text-muted-foreground">
-          No trackable projects — create one on the Tickora website.
-        </p>
-      )}
-      {timer.projectsError && !running && (
-        <button
-          type="button"
-          onClick={timer.refresh}
-          className="text-center text-xs text-destructive underline-offset-4 hover:underline"
-        >
-          Could not load projects — retry
-        </button>
-      )}
-
-      <WeekStats
-        totalSeconds={weekStats.totalSeconds}
-        week={weekStats.week}
-        recent={weekStats.recent}
-        projectName={projectName}
-      />
 
       <footer className="mt-auto flex items-center justify-between text-[11px] text-muted-foreground">
         <span className="truncate">{session.deviceName}</span>
-        {timer.activeLoading && !running ? (
+        {timer.activeLoading && !timer.run ? (
           <span className="flex items-center gap-1">
             <Spinner className="size-3" /> Syncing…
           </span>
         ) : (
-          <span>{running ? (timer.offline ? "Offline" : "Tracking") : "Idle"}</span>
+          <span>{timer.run ? (timer.offline ? "Offline" : "Tracking") : "Idle"}</span>
         )}
       </footer>
 
