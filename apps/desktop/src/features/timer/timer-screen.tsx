@@ -23,6 +23,8 @@ import {
 import { formatElapsed, formatShort } from "../../lib/timer-format";
 import type { StoredSession } from "../../lib/session-store";
 import { useTimer, type TimerRun } from "./use-timer";
+import { useWeekStats } from "../stats/use-week-stats";
+import { WeekStats } from "../stats/week-stats";
 
 /** Server-anchored ticker: re-anchors on every active-poll, ticks locally. */
 function useDisplayedElapsed(run: TimerRun | null): number {
@@ -86,6 +88,7 @@ export function TimerScreen({
   onSignOut: () => void;
 }) {
   const timer = useTimer(session);
+  const weekStats = useWeekStats();
   const elapsed = useDisplayedElapsed(timer.run);
   const running = timer.run !== null;
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -113,6 +116,8 @@ export function TimerScreen({
   const activeProject = running
     ? timer.projects.find((p) => p._id === timer.run?.projectId) ?? null
     : null;
+  const projectName = (projectId: string) =>
+    timer.projects.find((p) => p._id === projectId)?.name ?? "Unknown project";
 
   return (
     <main className="flex min-h-screen flex-col gap-3 p-4">
@@ -215,6 +220,13 @@ export function TimerScreen({
           Could not load projects — retry
         </button>
       )}
+
+      <WeekStats
+        totalSeconds={weekStats.totalSeconds}
+        week={weekStats.week}
+        recent={weekStats.recent}
+        projectName={projectName}
+      />
 
       <footer className="mt-auto flex items-center justify-between text-[11px] text-muted-foreground">
         <span className="truncate">{session.deviceName}</span>
